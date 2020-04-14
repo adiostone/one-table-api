@@ -1,0 +1,22 @@
+# logs
+yarn-error.log
+npm-debug.log
+/logs
+
+# compiled files
+/build
+
+# dependencies
+/node_modules
+
+# environment files
+.env
+
+# process manager
+pm2.config.js
+
+# IDE / editor
+/.idea
+
+# OS specific
+.DS_Store

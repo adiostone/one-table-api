@@ -1,0 +1,69 @@
+{
+  "name": "one-table-api",
+  "version": "1.0.0",
+  "description": "Provide fast and simple APIs for OneTable service",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/adiostone/one-table-api"
+  },
+  "author": "ihooni",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/adiostone/one-table-api/issues"
+  },
+  "homepage": "https://github.com/adiostone/one-table-api#readme",
+  "main": "src/main.ts",
+  "scripts": {
+    "type-check": "tsc",
+    "type-check:watch": "npm run type-check -- --watch",
+    "build": "babel src --out-dir ./build --extensions \".ts\" --source-maps inline",
+    "build:watch": "npm run build -- --watch",
+    "build:prod": "npm run type-check && npm run build",
+    "dev": "npm run start && npm run build:watch",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "pm2 start ./pm2.config.js",
+    "stop": "pm2 stop ./pm2.config.js",
+    "restart": "pm2 restart ./pm2.config.js"
+  },
+  "dependencies": {
+    "@godaddy/terminus": "^4.3.1",
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "helmet": "^3.21.3",
+    "mongoose": "^5.9.5",
+    "morgan": "^1.9.1",
+    "winston": "^3.2.1"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.8.4",
+    "@babel/core": "^7.8.7",
+    "@babel/plugin-proposal-class-properties": "^7.8.3",
+    "@babel/plugin-transform-runtime": "^7.8.3",
+    "@babel/preset-env": "^7.8.7",
+    "@babel/preset-typescript": "^7.8.3",
+    "@types/app-root-path": "^1.2.4",
+    "@types/cors": "^2.8.6",
+    "@types/express": "^4.17.3",
+    "@types/helmet": "0.0.45",
+    "@types/mongoose": "^5.7.6",
+    "@types/morgan": "^1.9.0",
+    "@types/node": "^13.9.2",
+    "@typescript-eslint/eslint-plugin": "^2.24.0",
+    "@typescript-eslint/parser": "^2.24.0",
+    "app-root-path": "^3.0.0",
+    "babel-plugin-module-resolver": "^4.0.0",
+    "dotenv": "^8.2.0",
+    "eslint": "^6.8.0",
+    "eslint-config-prettier": "^6.10.0",
+    "eslint-config-standard": "^14.1.0",
+    "eslint-plugin-import": "^2.20.1",
+    "eslint-plugin-node": "^11.0.0",
+    "eslint-plugin-prettier": "^3.1.2",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-standard": "^4.0.1",
+    "minimist": "^1.2.5",
+    "prettier": "^1.19.1",
+    "typescript": "^3.8.3"
+  }
+}
