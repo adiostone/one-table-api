@@ -9,15 +9,20 @@ export type HttpResponse = Response
 export type HttpNext = NextFunction
 
 export interface SimpleHandler {
-  (req: HttpRequest, res: HttpResponse): void
+  (req: HttpRequest, res: HttpResponse): void | Promise<void>
 }
 
 export interface NextHandler {
-  (req: HttpRequest, res: HttpResponse, next: HttpNext): void
+  (req: HttpRequest, res: HttpResponse, next: HttpNext): void | Promise<void>
 }
 
 export interface ErrorHandler {
-  (err: Error, req: HttpRequest, res: HttpResponse, next: HttpNext): void
+  (
+    err: Error,
+    req: HttpRequest,
+    res: HttpResponse,
+    next: HttpNext
+  ): void | Promise<void>
 }
 
 export type HttpHandler = SimpleHandler | NextHandler | ErrorHandler
