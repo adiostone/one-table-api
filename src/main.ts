@@ -44,8 +44,8 @@ async function bootApp(): Promise<void> {
   // boot the services
   let app
   try {
-    app = RouteServiceProvider.boot()
     await DBServiceProvider.boot()
+    app = RouteServiceProvider.boot()
   } catch (error) {
     // log the booting error and exit this app
     Logger.I.log('debug', `App booting error: ${error}`)
