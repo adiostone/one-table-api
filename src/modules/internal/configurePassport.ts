@@ -13,6 +13,7 @@ export default function configurePassport(): void {
         callbackURL: process.env.GOOGLE_TB_CALLBACK_URL
       },
       (accessToken, refreshToken, profile, done) => {
+        // get user information from google
         const [id, email, name, image] = [
           profile.id,
           profile.emails[0].value,
@@ -27,8 +28,15 @@ export default function configurePassport(): void {
             name: name,
             image: image
           }
-        }).then(([user]) => {
-          done(null, user)
+        }).then(result => {
+          const [user, built] = result
+
+          // check if new user
+          if (built) {
+            done(null, user, { message: 'Signed up' })
+          } else {
+            done(null, user, { message: 'Signed in' })
+          }
         })
       }
     )
