@@ -6,6 +6,8 @@ import bodyParser from 'body-parser'
 import HttpErrorHandler from '@/http/middleware/HttpErrorHandler'
 import morgan from 'morgan'
 import fs from 'fs'
+import passport from 'passport'
+import configurePassport from '@/modules/internal/configurePassport'
 
 export default class RouteServiceProvider {
   /**
@@ -21,7 +23,8 @@ export default class RouteServiceProvider {
       stream: fs.createWriteStream(`${process.env.APP_LOG_DIR}/access.log`, {
         flags: 'a'
       })
-    })
+    }),
+    passport.initialize()
   ]
 
   /**
@@ -46,6 +49,9 @@ export default class RouteServiceProvider {
     app.use(this.basicMiddleware)
     app.use('/v1', v1Router) // api versioning
     app.use(this.errorMiddleware)
+
+    // configure passport strategies
+    configurePassport()
 
     return app
   }
