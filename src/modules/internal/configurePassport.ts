@@ -8,9 +8,9 @@ export default function configurePassport(): void {
     'google-table',
     new GoogleStrategy(
       {
-        clientID: process.env.GOOGLE_TB_CLIENT_ID,
-        clientSecret: process.env.GOOGLE_TB_CLIENT_SECRET,
-        callbackURL: process.env.GOOGLE_TB_CALLBACK_URL
+        clientID: process.env.TB_GOOGLE_CLIENT_ID,
+        clientSecret: process.env.TB_GOOGLE_CLIENT_SECRET,
+        callbackURL: process.env.TB_GOOGLE_CALLBACK_URL
       },
       (accessToken, refreshToken, profile, done) => {
         // get user information from google
