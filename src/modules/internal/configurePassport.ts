@@ -1,5 +1,6 @@
 import passport from 'passport'
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20'
+import { ExtractJwt, Strategy as JWTStrategy } from 'passport-jwt'
 import User from '@/models/User'
 
 export default function configurePassport(): void {
@@ -36,6 +37,28 @@ export default function configurePassport(): void {
             done(null, user, { message: 'Signed up' })
           } else {
             done(null, user, { message: 'Signed in' })
+          }
+        })
+      }
+    )
+  )
+
+  // jwt access token strategy for table user
+  passport.use(
+    'jwt-access-table',
+    new JWTStrategy(
+      {
+        jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+        secretOrKey: process.env.TB_JWT_SECRET_KEY
+      },
+      (payload, done) => {
+        const id = payload.sub
+
+        User.findByPk(id).then(user => {
+          if (user === null) {
+            done('Invalid access token')
+          } else {
+            done(null, user)
           }
         })
       }
