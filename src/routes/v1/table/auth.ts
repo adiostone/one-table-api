@@ -3,12 +3,12 @@ import passport from 'passport'
 import HttpErrorHandler from '@/http/middleware/HttpErrorHandler'
 import TableAuthController from '@/http/controller/TableAuthController'
 
-const tableAuthRouter = express.Router()
+const authRouter = express.Router()
 
 /**
  * GET: redirect to google login form
  */
-tableAuthRouter
+authRouter
   .route('/login')
   .get(
     passport.authenticate('google-table', {
@@ -22,7 +22,7 @@ tableAuthRouter
  * GET: receive callback from google login form and
  * redirect to handshake url with new issued tokens
  */
-tableAuthRouter
+authRouter
   .route('/callback')
   .get(
     passport.authenticate('google-table', { session: false }),
@@ -30,4 +30,4 @@ tableAuthRouter
   )
   .all(HttpErrorHandler.methodNotAllowedHandler)
 
-export default tableAuthRouter
+export default authRouter

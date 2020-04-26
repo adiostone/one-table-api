@@ -1,5 +1,5 @@
 import express, { Express } from 'express'
-import v1Router from '@/routes/v1/api'
+import v1Router from '@/routes/v1'
 import cors from 'cors'
 import helmet from 'helmet'
 import bodyParser from 'body-parser'
