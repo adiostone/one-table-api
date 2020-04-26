@@ -1,16 +1,7 @@
 import { DataTypes, Model } from 'sequelize'
+import MySQLConnector from '@/modules/database/MySQLConnector'
 
-export default class User extends Model {
-  public id: string
-  public email: string
-  public name: string
-  public image: string | null
-
-  public readonly createdAt: Date
-  public readonly updatedAt: Date
-}
-
-export const userSchema = {
+const schema = {
   id: {
     type: DataTypes.STRING(64),
     primaryKey: true
@@ -27,5 +18,34 @@ export const userSchema = {
   image: {
     type: DataTypes.STRING(256),
     allowNull: true
+  },
+  signedInAt: {
+    type: DataTypes.DATE,
+    allowNull: false,
+    defaultValue: DataTypes.NOW
+  },
+  signedUpAt: {
+    type: DataTypes.DATE,
+    allowNull: false,
+    defaultValue: DataTypes.NOW
+  }
+}
+
+export default class User extends Model {
+  public id: string
+  public email: string
+  public name: string
+  public image: string | null
+  public signedInAt: Date
+  public signedUpAt: Date
+
+  public static async initModel(): Promise<void> {
+    this.init(schema, {
+      timestamps: false,
+      tableName: 'users',
+      sequelize: MySQLConnector.I.conn
+    })
+
+    await this.sync()
   }
 }
