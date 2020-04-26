@@ -8,7 +8,7 @@ export default class TableAuthController {
     const user = req.user as User
 
     // issue tokens
-    const accessToken = JWTIssuer.issueTableAccessToken(user.id)
+    const accessToken = JWTIssuer.issueTableAccessToken(user.get('id'))
     const refreshToken = JWTIssuer.issueTableRefreshToken()
 
     let handshakingItems

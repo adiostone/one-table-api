@@ -36,7 +36,9 @@ export default function configurePassport(): void {
           if (built) {
             done(null, user, { message: 'Signed up' })
           } else {
-            done(null, user, { message: 'Signed in' })
+            user.update({ signedInAt: new Date() }).then(() => {
+              done(null, user, { message: 'Signed in' })
+            })
           }
         })
       }
