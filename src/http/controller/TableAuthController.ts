@@ -44,4 +44,41 @@ export default class TableAuthController {
       })
     )
   }
+
+  public static refresh: SimpleHandler = async (req, res) => {
+    const [type, refreshToken] = req.headers.authorization.split(' ')
+
+    // check authorization type
+    if (type !== 'Bearer') {
+      res.status(401).send('Unauthorized')
+      return
+    }
+
+    // check if refresh token is valid
+    const userToken = await UserToken.findByPk(refreshToken)
+    if (userToken === null) {
+      res.status(401).send('Unauthorized')
+      return
+    }
+
+    const body = {} as RefreshResponseBody
+
+    // reissue access token
+    body.access = JWTIssuer.issueTableAccessToken(userToken.get('userID'))
+
+    // check if refresh token is soon expired
+    if (JWTIssuer.isRefreshTokenSoonExpired(refreshToken)) {
+      // reissue refresh token
+      body.refresh = JWTIssuer.issueTableRefreshToken()
+      await UserToken.create({
+        refresh: body.refresh,
+        userID: userToken.get('userID')
+      })
+
+      // remove previous refresh token
+      await userToken.destroy()
+    }
+
+    res.json(body)
+  }
 }

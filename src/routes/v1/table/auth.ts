@@ -30,4 +30,15 @@ authRouter
   )
   .all(HttpErrorHandler.methodNotAllowedHandler)
 
+/**
+ * GET: refresh access token and if needed refresh the `refresh token`.
+ */
+authRouter
+  .route('/refresh')
+  .get(
+    passport.authenticate('jwt-refresh-table', { session: false }),
+    TableAuthController.refresh
+  )
+  .all(HttpErrorHandler.methodNotAllowedHandler)
+
 export default authRouter
