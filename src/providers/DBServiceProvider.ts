@@ -7,8 +7,15 @@ export default class DBServiceProvider {
     // connect to database
     await MySQLConnector.I.connect()
 
-    /* create tables */
-    await User.initModel()
-    await UserToken.initModel()
+    // initialize models
+    User.initModel()
+    UserToken.initModel()
+
+    // initialize associations
+    UserToken.initAssociation()
+
+    // sync to database
+    await User.sync()
+    await UserToken.sync()
   }
 }

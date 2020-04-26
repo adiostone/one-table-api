@@ -10,31 +10,26 @@ const schema = {
   userID: {
     type: DataTypes.STRING(64),
     allowNull: false
-  },
-  expireAt: {
-    type: DataTypes.DATE,
-    allowNull: false
   }
 }
 
 export default class UserToken extends Model {
   public refresh: string
   public userID: string
-  public expireAt: Date
 
-  public static async initModel(): Promise<void> {
+  public static initModel(): void {
     this.init(schema, {
       timestamps: false,
       tableName: 'user_tokens',
       sequelize: MySQLConnector.I.conn
     })
+  }
 
+  public static initAssociation(): void {
     this.belongsTo(User, {
       foreignKey: 'userID',
       targetKey: 'id',
       onDelete: 'cascade'
     })
-
-    await this.sync()
   }
 }

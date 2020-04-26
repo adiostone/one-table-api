@@ -39,13 +39,11 @@ export default class User extends Model {
   public signedInAt: Date
   public signedUpAt: Date
 
-  public static async initModel(): Promise<void> {
+  public static initModel(): void {
     this.init(schema, {
       timestamps: false,
       tableName: 'users',
       sequelize: MySQLConnector.I.conn
     })
-
-    await this.sync()
   }
 }
