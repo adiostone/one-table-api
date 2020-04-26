@@ -67,4 +67,19 @@ export default function configurePassport(): void {
       }
     )
   )
+
+  // jwt refresh token strategy for table user
+  passport.use(
+    'jwt-refresh-table',
+    new JWTStrategy(
+      {
+        jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+        secretOrKey: process.env.TB_JWT_SECRET_KEY,
+        issuer: process.env.TB_JWT_ISSUER
+      },
+      (payload, done) => {
+        done(null, true)
+      }
+    )
+  )
 }
