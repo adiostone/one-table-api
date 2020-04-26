@@ -51,7 +51,8 @@ export default function configurePassport(): void {
     new JWTStrategy(
       {
         jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-        secretOrKey: process.env.TB_JWT_SECRET_KEY
+        secretOrKey: process.env.TB_JWT_SECRET_KEY,
+        issuer: process.env.TB_JWT_ISSUER
       },
       (payload, done) => {
         const id = payload.sub
