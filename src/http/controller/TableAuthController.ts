@@ -2,36 +2,45 @@ import { SimpleHandler } from '@/http/HttpHandler'
 import User from '@/models/User'
 import JWTIssuer from '@/modules/internal/JWTIssuer'
 import url from 'url'
+import UserToken from '@/models/UserToken'
+
+interface HandshakingItems {
+  access: string
+  refresh: string
+  isnew?: boolean
+}
+
+interface RefreshResponseBody {
+  access: string
+  refresh?: string
+}
 
 export default class TableAuthController {
   public static handshake: SimpleHandler = async (req, res) => {
     const user = req.user as User
 
-    // issue tokens
-    const accessToken = JWTIssuer.issueTableAccessToken(user.get('id'))
-    const refreshToken = JWTIssuer.issueTableRefreshToken()
+    const items = {} as HandshakingItems
 
-    let handshakingItems
+    // issue tokens
+    items.access = JWTIssuer.issueTableAccessToken(user.get('id'))
+    items.refresh = JWTIssuer.issueTableRefreshToken()
+
     if (user.isNewRecord) {
       await user.save()
-
-      handshakingItems = {
-        access: accessToken,
-        refresh: refreshToken,
-        isnew: true // query for notifying that this user is new face
-      }
-    } else {
-      handshakingItems = {
-        access: accessToken,
-        refresh: refreshToken
-      }
+      items.isnew = true
     }
+
+    // save refresh token to database
+    await UserToken.create({
+      refresh: items.refresh,
+      userID: user.get('id')
+    })
 
     // redirect to handshaking place
     res.redirect(
       url.format({
         pathname: process.env.TB_HANDSHAKE_URL,
-        query: handshakingItems
+        query: items as {}
       })
     )
   }
