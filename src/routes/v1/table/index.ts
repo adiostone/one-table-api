@@ -5,4 +5,14 @@ const tableRouter = express.Router()
 
 tableRouter.use('/auth', authRouter)
 
+// // example router
+// tableRouter.get(
+//   '/test',
+//   passport.authenticate('jwt-access-table', { session: false }),
+//   CheckTokenBlacklist.handler,
+//   (req, res) => {
+//     res.send('good!')
+//   }
+// )
+
 export default tableRouter
