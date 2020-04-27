@@ -1,9 +1,12 @@
 import MySQLConnector from '@/modules/database/MySQLConnector'
 import User from '@/models/User'
 import UserToken from '@/models/UserToken'
+import RedisConnector from '@/modules/database/RedisConnector'
 
 export default class DBServiceProvider {
   public static async boot(): Promise<void> {
+    // connect to redis
+    await RedisConnector.I.connect()
     // connect to database
     await MySQLConnector.I.connect()
 
