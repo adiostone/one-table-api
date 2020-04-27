@@ -9,13 +9,11 @@ const TABLE_CONFIGS = {
   maxAgeToRefresh: '7d'
 }
 
-interface DecodedRefreshToken {
-  payload: {
-    exp: number
-  }
+interface DecodedPayload {
+  exp: number
 }
 
-export default class JWTIssuer {
+export default class JWTHelper {
   public static issueTableAccessToken(id: string): string {
     return jwt.sign({}, TABLE_CONFIGS.secret, {
       issuer: TABLE_CONFIGS.issuer,
@@ -34,11 +32,18 @@ export default class JWTIssuer {
   }
 
   public static isRefreshTokenSoonExpired(token: string): boolean {
-    const decoded = jwt.decode(token, { complete: true }) as DecodedRefreshToken
+    const decoded = jwt.decode(token) as DecodedPayload
     const refreshThreshold = new Date(
-      decoded.payload.exp * 1000 - ms(TABLE_CONFIGS.maxAgeToRefresh)
+      decoded.exp * 1000 - ms(TABLE_CONFIGS.maxAgeToRefresh)
     )
 
     return Date.now() > refreshThreshold.getTime()
+  }
+
+  public static ttlOfToken(token: string): number {
+    const decoded = jwt.decode(token) as DecodedPayload
+    const expDate = new Date(decoded.exp * 1000)
+
+    return Math.ceil((expDate.getTime() - new Date().getTime()) / 1000)
   }
 }
