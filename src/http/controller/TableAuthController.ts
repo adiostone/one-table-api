@@ -46,13 +46,7 @@ export default class TableAuthController {
   }
 
   public static refresh: SimpleHandler = async (req, res) => {
-    const [type, refreshToken] = req.headers.authorization.split(' ')
-
-    // check authorization type
-    if (type !== 'Bearer') {
-      res.status(401).send('Unauthorized')
-      return
-    }
+    const refreshToken = req.headers.authorization.split(' ')[1]
 
     // check if refresh token is valid
     const userToken = await UserToken.findByPk(refreshToken)
