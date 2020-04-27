@@ -4,13 +4,21 @@ import http from 'http'
 import { createTerminus } from '@godaddy/terminus'
 import Logger from '@/modules/log/Logger'
 import fs from 'fs'
+import MySQLConnector from '@/modules/database/MySQLConnector'
+import DBServiceProvider from '@/providers/DBServiceProvider'
 
 /**
  * For kubernetes readiness / liveness checks.
  *
  * TODO: make your own health check function like checking the database connection
  */
-function onHealthCheck(): Promise<void> {
+async function onHealthCheck(): Promise<void> {
+  try {
+    await MySQLConnector.I.healthcheck()
+  } catch (error) {
+    return Promise.reject(error)
+  }
+
   return Promise.resolve()
 }
 
@@ -27,7 +35,7 @@ function onSignal(): Promise<void> {
 /**
  * Start this application.
  */
-function bootApp(): void {
+async function bootApp(): Promise<void> {
   // if directory for log is not exist, make it
   if (!fs.existsSync(process.env.APP_LOG_DIR)) {
     fs.mkdirSync(process.env.APP_LOG_DIR)
@@ -36,6 +44,7 @@ function bootApp(): void {
   // boot the services
   let app
   try {
+    await DBServiceProvider.boot()
     app = RouteServiceProvider.boot()
   } catch (error) {
     // log the booting error and exit this app
@@ -65,4 +74,4 @@ function bootApp(): void {
 }
 
 dotenv.config() // load env values
-bootApp()
+bootApp().then()
