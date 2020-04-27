@@ -1,8 +1,9 @@
 import { SimpleHandler } from '@/http/HttpHandler'
 import User from '@/models/User'
-import JWTIssuer from '@/modules/internal/JWTIssuer'
+import JWTHelper from '@/modules/internal/JWTHelper'
 import url from 'url'
 import UserToken from '@/models/UserToken'
+import RedisConnector from '@/modules/database/RedisConnector'
 
 interface HandshakingItems {
   access: string
@@ -22,8 +23,8 @@ export default class TableAuthController {
     const items = {} as HandshakingItems
 
     // issue tokens
-    items.access = JWTIssuer.issueTableAccessToken(user.get('id'))
-    items.refresh = JWTIssuer.issueTableRefreshToken()
+    items.access = JWTHelper.issueTableAccessToken(user.get('id'))
+    items.refresh = JWTHelper.issueTableRefreshToken()
 
     if (user.isNewRecord) {
       await user.save()
@@ -58,12 +59,12 @@ export default class TableAuthController {
     const body = {} as RefreshResponseBody
 
     // reissue access token
-    body.access = JWTIssuer.issueTableAccessToken(userToken.get('userID'))
+    body.access = JWTHelper.issueTableAccessToken(userToken.get('userID'))
 
     // check if refresh token is soon expired
-    if (JWTIssuer.isRefreshTokenSoonExpired(refreshToken)) {
+    if (JWTHelper.isRefreshTokenSoonExpired(refreshToken)) {
       // reissue refresh token
-      body.refresh = JWTIssuer.issueTableRefreshToken()
+      body.refresh = JWTHelper.issueTableRefreshToken()
       await UserToken.create({
         refresh: body.refresh,
         userID: userToken.get('userID')
@@ -74,5 +75,16 @@ export default class TableAuthController {
     }
 
     res.json(body)
+  }
+
+  public static signOut: SimpleHandler = async (req, res) => {
+    const accessToken = req.headers.authorization.split(' ')[1]
+    await RedisConnector.I.conn.setex(
+      accessToken,
+      JWTHelper.ttlOfToken(accessToken),
+      'blacklist'
+    )
+
+    res.status(204).json()
   }
 }

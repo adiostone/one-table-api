@@ -6,10 +6,10 @@ import TableAuthController from '@/http/controller/TableAuthController'
 const authRouter = express.Router()
 
 /**
- * GET: redirect to google login form
+ * GET: redirect to google signin form
  */
 authRouter
-  .route('/login')
+  .route('/signin')
   .get(
     passport.authenticate('google-table', {
       session: false,
@@ -38,6 +38,17 @@ authRouter
   .get(
     passport.authenticate('jwt-refresh-table', { session: false }),
     TableAuthController.refresh
+  )
+  .all(HttpErrorHandler.methodNotAllowedHandler)
+
+/**
+ * GET: add user's access token to blacklist
+ */
+authRouter
+  .route('/signout')
+  .get(
+    passport.authenticate('jwt-access-table', { session: false }),
+    TableAuthController.signOut
   )
   .all(HttpErrorHandler.methodNotAllowedHandler)
 
