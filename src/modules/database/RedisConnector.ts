@@ -28,14 +28,12 @@ export default class RedisConnector {
     return this._conn
   }
 
-  public async connect(): Promise<void> {
+  public connect(): void {
     this._conn = new Redis({
       host: process.env.REDIS_HOST,
       port: parseInt(process.env.REDIS_PORT, 10),
       password: process.env.REDIS_PASSWORD
     })
-
-    await this._conn.connect()
   }
 
   public close(): void {

@@ -6,7 +6,7 @@ import RedisConnector from '@/modules/database/RedisConnector'
 export default class DBServiceProvider {
   public static async boot(): Promise<void> {
     // connect to redis
-    await RedisConnector.I.connect()
+    RedisConnector.I.connect()
     // connect to database
     await MySQLConnector.I.connect()
 
