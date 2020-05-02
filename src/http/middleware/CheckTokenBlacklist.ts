@@ -3,7 +3,7 @@ import RedisConnector from '@/modules/database/RedisConnector'
 
 export default class CheckTokenBlacklist {
   /**
-   * Check if user's access token is in the blacklist.
+   * Check if access token is in the blacklist.
    * If so, 401 error.
    *
    * @param req

@@ -1,5 +1,4 @@
 import express, { Express } from 'express'
-import v1Router from '@/routes/v1'
 import cors from 'cors'
 import helmet from 'helmet'
 import bodyParser from 'body-parser'
@@ -8,6 +7,7 @@ import morgan from 'morgan'
 import fs from 'fs'
 import passport from 'passport'
 import configurePassport from '@/modules/internal/configurePassport'
+import mainRouter from '@/routes'
 
 export default class RouteServiceProvider {
   /**
@@ -47,7 +47,7 @@ export default class RouteServiceProvider {
     const app = express()
     app.set('trust proxy', true)
     app.use(this.basicMiddleware)
-    app.use('/v1', v1Router) // api versioning
+    app.use(mainRouter)
     app.use(this.errorMiddleware)
 
     // configure passport strategies

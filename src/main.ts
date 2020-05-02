@@ -6,6 +6,7 @@ import Logger from '@/modules/log/Logger'
 import fs from 'fs'
 import MySQLConnector from '@/modules/database/MySQLConnector'
 import DBServiceProvider from '@/providers/DBServiceProvider'
+import RedisConnector from '@/modules/database/RedisConnector'
 
 /**
  * For kubernetes readiness / liveness checks.
@@ -28,8 +29,9 @@ async function onHealthCheck(): Promise<void> {
  *
  * TODO: make your own clean up function like closing the database connection
  */
-function onSignal(): Promise<void> {
-  return Promise.resolve()
+async function onSignal(): Promise<void> {
+  RedisConnector.I.close()
+  await MySQLConnector.I.close()
 }
 
 /**

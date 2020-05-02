@@ -9,8 +9,17 @@ const TABLE_CONFIGS = {
   maxAgeToRefresh: '7d'
 }
 
+const RESTAURANT_CONFIGS = {
+  secret: process.env.RT_JWT_SECRET_KEY,
+  issuer: process.env.RT_JWT_ISSUER,
+  accessExpire: '1h',
+  refreshExpire: '30d',
+  maxAgeToRefresh: '7d'
+}
+
 interface DecodedPayload {
   exp: number
+  iss: string
 }
 
 export default class JWTHelper {
@@ -31,11 +40,34 @@ export default class JWTHelper {
     })
   }
 
+  public static issueRestaurantAccessToken(id: string): string {
+    return jwt.sign({}, RESTAURANT_CONFIGS.secret, {
+      issuer: RESTAURANT_CONFIGS.issuer,
+      subject: id,
+      expiresIn: RESTAURANT_CONFIGS.accessExpire,
+      notBefore: 1
+    })
+  }
+
+  public static issueRestaurantRefreshToken(): string {
+    return jwt.sign({}, RESTAURANT_CONFIGS.secret, {
+      issuer: RESTAURANT_CONFIGS.issuer,
+      expiresIn: RESTAURANT_CONFIGS.refreshExpire,
+      notBefore: 1
+    })
+  }
+
   public static isRefreshTokenSoonExpired(token: string): boolean {
     const decoded = jwt.decode(token) as DecodedPayload
-    const refreshThreshold = new Date(
-      decoded.exp * 1000 - ms(TABLE_CONFIGS.maxAgeToRefresh)
-    )
+
+    let maxAgeToRefresh
+    if (decoded.iss === TABLE_CONFIGS.issuer) {
+      maxAgeToRefresh = TABLE_CONFIGS.maxAgeToRefresh
+    } else {
+      maxAgeToRefresh = RESTAURANT_CONFIGS.maxAgeToRefresh
+    }
+
+    const refreshThreshold = new Date(decoded.exp * 1000 - ms(maxAgeToRefresh))
 
     return Date.now() > refreshThreshold.getTime()
   }
