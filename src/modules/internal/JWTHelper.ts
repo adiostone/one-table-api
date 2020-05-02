@@ -9,6 +9,14 @@ const TABLE_CONFIGS = {
   maxAgeToRefresh: '7d'
 }
 
+const RESTAURANT_CONFIGS = {
+  secret: process.env.RT_JWT_SECRET_KEY,
+  issuer: process.env.RT_JWT_ISSUER,
+  accessExpire: '1h',
+  refreshExpire: '30d',
+  maxAgeToRefresh: '7d'
+}
+
 interface DecodedPayload {
   exp: number
 }
@@ -27,6 +35,23 @@ export default class JWTHelper {
     return jwt.sign({}, TABLE_CONFIGS.secret, {
       issuer: TABLE_CONFIGS.issuer,
       expiresIn: TABLE_CONFIGS.refreshExpire,
+      notBefore: 1
+    })
+  }
+
+  public static issueRestaurantAccessToken(id: string): string {
+    return jwt.sign({}, RESTAURANT_CONFIGS.secret, {
+      issuer: RESTAURANT_CONFIGS.issuer,
+      subject: id,
+      expiresIn: RESTAURANT_CONFIGS.accessExpire,
+      notBefore: 1
+    })
+  }
+
+  public static issueRestaurantRefreshToken(): string {
+    return jwt.sign({}, RESTAURANT_CONFIGS.secret, {
+      issuer: RESTAURANT_CONFIGS.issuer,
+      expiresIn: RESTAURANT_CONFIGS.refreshExpire,
       notBefore: 1
     })
   }
