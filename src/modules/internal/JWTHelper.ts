@@ -19,6 +19,7 @@ const RESTAURANT_CONFIGS = {
 
 interface DecodedPayload {
   exp: number
+  iss: string
 }
 
 export default class JWTHelper {
@@ -58,9 +59,15 @@ export default class JWTHelper {
 
   public static isRefreshTokenSoonExpired(token: string): boolean {
     const decoded = jwt.decode(token) as DecodedPayload
-    const refreshThreshold = new Date(
-      decoded.exp * 1000 - ms(TABLE_CONFIGS.maxAgeToRefresh)
-    )
+
+    let maxAgeToRefresh
+    if (decoded.iss === TABLE_CONFIGS.issuer) {
+      maxAgeToRefresh = TABLE_CONFIGS.maxAgeToRefresh
+    } else {
+      maxAgeToRefresh = RESTAURANT_CONFIGS.maxAgeToRefresh
+    }
+
+    const refreshThreshold = new Date(decoded.exp * 1000 - ms(maxAgeToRefresh))
 
     return Date.now() > refreshThreshold.getTime()
   }
