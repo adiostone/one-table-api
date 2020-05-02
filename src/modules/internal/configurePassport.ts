@@ -35,10 +35,12 @@ export default function configurePassport(): void {
 
           // check if new user
           if (built) {
-            done(null, user, { message: 'Signed up' })
+            // sign up
+            done(null, user)
           } else {
             user.update({ signedInAt: new Date() }).then(() => {
-              done(null, user, { message: 'Signed in' })
+              // sign in
+              done(null, user)
             })
           }
         })
@@ -60,8 +62,10 @@ export default function configurePassport(): void {
 
         User.findByPk(id).then(user => {
           if (user === null) {
-            done('Invalid access token')
+            // 401 error
+            done(null, false)
           } else {
+            // authenticated
             done(null, user)
           }
         })
@@ -114,10 +118,12 @@ export default function configurePassport(): void {
 
           // check if new owner
           if (built) {
-            done(null, owner, { message: 'Signed up' })
+            // sign up
+            done(null, owner)
           } else {
             owner.update({ signedInAt: new Date() }).then(() => {
-              done(null, owner, { message: 'Signed in' })
+              // sign in
+              done(null, owner)
             })
           }
         })
@@ -139,8 +145,10 @@ export default function configurePassport(): void {
 
         Owner.findByPk(id).then(owner => {
           if (owner === null) {
-            done('Invalid access token')
+            // 401 error
+            done(null, false)
           } else {
+            // authenticated
             done(null, owner)
           }
         })
