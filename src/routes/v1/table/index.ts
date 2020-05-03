@@ -23,12 +23,14 @@ tableRouter.get(
 
 /**
  * GET: Start party websocket connection
- *
- * TODO: Apply JWT authentication check
  */
 tableRouter
   .route('/party')
-  .get(TablePartyController.upgradeToWebSocket)
+  .get(
+    passport.authenticate('jwt-access-table', { session: false }),
+    CheckTokenBlacklist.handler,
+    TablePartyController.upgradeToWebSocket
+  )
   .all(HttpErrorHandler.methodNotAllowedHandler)
 
 export default tableRouter
