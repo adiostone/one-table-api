@@ -1,6 +1,7 @@
 import WebSocket from 'ws'
 
 const partyWS = new WebSocket.Server({ noServer: true })
+
 partyWS.on('connection', ws => {
   ws.send('hello table!!')
 

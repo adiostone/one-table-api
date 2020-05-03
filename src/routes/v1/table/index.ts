@@ -4,6 +4,7 @@ import passport from 'passport'
 import CheckTokenBlacklist from '@/http/middleware/CheckTokenBlacklist'
 import TablePartyController from '@/http/controller/TablePartyController'
 import HttpErrorHandler from '@/http/middleware/HttpErrorHandler'
+import User from '@/models/User'
 
 const tableRouter = express.Router()
 
@@ -15,7 +16,8 @@ tableRouter.get(
   passport.authenticate('jwt-access-table', { session: false }),
   CheckTokenBlacklist.handler,
   (req, res) => {
-    res.send('good!')
+    const user = req.user as User
+    res.json({ msg: 'hello ' + user.get('name') })
   }
 )
 
