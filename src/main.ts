@@ -7,8 +7,6 @@ import fs from 'fs'
 import MySQLConnector from '@/modules/database/MySQLConnector'
 import DBServiceProvider from '@/providers/DBServiceProvider'
 import RedisConnector from '@/modules/database/RedisConnector'
-import socketIO from 'socket.io'
-import configureSocketIO from '@/modules/internal/configureSocketIO'
 
 /**
  * For kubernetes readiness / liveness checks.
@@ -57,10 +55,6 @@ async function bootApp(): Promise<void> {
   }
 
   const server = http.createServer(app)
-
-  // init socket.io
-  const io = socketIO(server, { cookie: false })
-  configureSocketIO(io)
 
   // configure health checking and graceful shutdown
   createTerminus(server, {
