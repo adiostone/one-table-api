@@ -1,5 +1,5 @@
 import { SimpleHandler } from '@/http/HttpHandler'
-import { partyWS } from '@/modules/internal/websocketServers'
+import partyWS from '@/modules/internal/partyWebSocket'
 
 export default class TablePartyController {
   public static upgradeToWebSocket: SimpleHandler = (req, res) => {
