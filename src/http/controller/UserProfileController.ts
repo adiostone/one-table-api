@@ -1,13 +1,13 @@
 import { SimpleHandler } from '@/http/HttpHandler'
 import User from '@/models/User'
 
-interface GetResponse {
+interface GetResponseBody {
   email: string
   nickname: string
   image: string | null
 }
 
-interface UpdateRequest {
+interface UpdateRequestBody {
   nickname?: string
   image?: string
 }
@@ -16,7 +16,7 @@ export default class UserProfileController {
   public static getProfile: SimpleHandler = (req, res) => {
     const user = req.user as User
 
-    const responseBody: GetResponse = {
+    const responseBody: GetResponseBody = {
       email: user.get('email'),
       nickname: user.get('nickname'),
       image: user.get('image')
@@ -27,7 +27,7 @@ export default class UserProfileController {
 
   public static updateProfile: SimpleHandler = async (req, res) => {
     const user = req.user as User
-    const requestBody: UpdateRequest = req.body
+    const requestBody: UpdateRequestBody = req.body
 
     if (requestBody.nickname) {
       user.set('nickname', requestBody.nickname)

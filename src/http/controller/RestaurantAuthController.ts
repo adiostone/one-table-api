@@ -1,6 +1,5 @@
 import { SimpleHandler } from '@/http/HttpHandler'
 import JWTHelper from '@/modules/internal/JWTHelper'
-import url from 'url'
 import RedisConnector from '@/modules/database/RedisConnector'
 import Owner from '@/models/Owner'
 import OwnerToken from '@/models/OwnerToken'
@@ -37,13 +36,7 @@ export default class RestaurantAuthController {
       ownerID: owner.get('id')
     })
 
-    // redirect to handshaking place
-    res.redirect(
-      url.format({
-        pathname: process.env.RT_HANDSHAKE_URL,
-        query: items as {}
-      })
-    )
+    res.status(200).json(items)
   }
 
   public static refresh: SimpleHandler = async (req, res) => {
@@ -76,7 +69,7 @@ export default class RestaurantAuthController {
       await ownerToken.destroy()
     }
 
-    res.json(body)
+    res.status(200).json(body)
   }
 
   public static signOut: SimpleHandler = async (req, res) => {
