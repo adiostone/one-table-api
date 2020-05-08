@@ -9,6 +9,11 @@ interface PartyWebSocket extends WebSocket {
   user: User
 }
 
+interface PartyMessage {
+  operation: string
+  body?: {}
+}
+
 // create websocket server
 const partyWS = new WebSocket.Server({ noServer: true })
 
@@ -35,8 +40,14 @@ partyWS.on('connection', (ws: PartyWebSocket, req: HttpRequest) => {
   })
 
   ws.on('message', msg => {
-    console.log(msg)
-    ws.send(`you said, ${msg}`)
+    const message: PartyMessage = JSON.parse(msg as string)
+
+    // check if registered operation
+    if (ws.listeners(message.operation).length > 0) {
+      ws.emit(message.operation, message.body)
+    } else {
+      ws.send('ERROR: wrong type operation')
+    }
   })
 })
 
