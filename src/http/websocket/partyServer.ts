@@ -3,9 +3,8 @@ import User from '@/models/User'
 import { HttpRequest } from '@/http/HttpHandler'
 import ms from 'ms'
 
-interface PartyWebSocket extends WebSocket {
+interface PartyWS extends WebSocket {
   isAlive: boolean
-
   user: User
 }
 
@@ -15,11 +14,11 @@ interface PartyMessage {
 }
 
 // create websocket server
-const partyWS = new WebSocket.Server({ noServer: true })
+const partyServer = new WebSocket.Server({ noServer: true })
 
 // set interval for checking if each connection is alive
 const aliveCheckingSchedule = setInterval(() => {
-  partyWS.clients.forEach((ws: PartyWebSocket) => {
+  partyServer.clients.forEach((ws: PartyWS) => {
     // broken connection
     if (ws.isAlive === false) {
       ws.terminate()
@@ -31,7 +30,7 @@ const aliveCheckingSchedule = setInterval(() => {
   })
 }, ms('30s'))
 
-partyWS.on('connection', (ws: PartyWebSocket, req: HttpRequest) => {
+partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
   ws.isAlive = true
   ws.user = req.user as User
 
@@ -51,8 +50,8 @@ partyWS.on('connection', (ws: PartyWebSocket, req: HttpRequest) => {
   })
 })
 
-partyWS.on('close', () => {
+partyServer.on('close', () => {
   clearInterval(aliveCheckingSchedule)
 })
 
-export default partyWS
+export default partyServer
