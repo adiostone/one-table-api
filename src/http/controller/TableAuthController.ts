@@ -74,7 +74,7 @@ export default class TableAuthController {
       await userToken.destroy()
     }
 
-    res.json(body)
+    res.status(200).json(body)
   }
 
   public static signOut: SimpleHandler = async (req, res) => {
