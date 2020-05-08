@@ -11,7 +11,7 @@ const schema = {
     allowNull: false,
     unique: true
   },
-  name: {
+  nickname: {
     type: DataTypes.STRING(32),
     allowNull: false
   },
@@ -34,7 +34,7 @@ const schema = {
 export default class User extends Model {
   public id: string
   public email: string
-  public name: string
+  public nickname: string
   public image: string | null
   public signedInAt: Date
   public signedUpAt: Date

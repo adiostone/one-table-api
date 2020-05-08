@@ -16,18 +16,18 @@ export default function configurePassport(): void {
       },
       (accessToken, refreshToken, profile, done) => {
         // get user information from google
-        const [id, email, name, image] = [
+        const [id, email, image] = [
           profile.id,
           profile.emails[0].value,
-          profile.displayName,
           profile.photos[0].value
         ]
+        const nickname = email.split('@')[0]
 
         User.findOrBuild({
           where: { id: id },
           defaults: {
             email: email,
-            name: name,
+            nickname: nickname,
             image: image
           }
         }).then(result => {
@@ -99,18 +99,18 @@ export default function configurePassport(): void {
       },
       (accessToken, refreshToken, profile, done) => {
         // get owner information from google
-        const [id, email, name, image] = [
+        const [id, email, image] = [
           profile.id,
           profile.emails[0].value,
-          profile.displayName,
           profile.photos[0].value
         ]
+        const nickname = email.split('@')[0]
 
         Owner.findOrBuild({
           where: { id: id },
           defaults: {
             email: email,
-            name: name,
+            nickname: nickname,
             image: image
           }
         }).then(result => {
