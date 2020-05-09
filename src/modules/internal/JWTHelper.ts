@@ -27,16 +27,14 @@ export default class JWTHelper {
     return jwt.sign({}, TABLE_CONFIGS.secret, {
       issuer: TABLE_CONFIGS.issuer,
       subject: id,
-      expiresIn: TABLE_CONFIGS.accessExpire,
-      notBefore: 1
+      expiresIn: TABLE_CONFIGS.accessExpire
     })
   }
 
   public static issueTableRefreshToken(): string {
     return jwt.sign({}, TABLE_CONFIGS.secret, {
       issuer: TABLE_CONFIGS.issuer,
-      expiresIn: TABLE_CONFIGS.refreshExpire,
-      notBefore: 1
+      expiresIn: TABLE_CONFIGS.refreshExpire
     })
   }
 
@@ -44,16 +42,14 @@ export default class JWTHelper {
     return jwt.sign({}, RESTAURANT_CONFIGS.secret, {
       issuer: RESTAURANT_CONFIGS.issuer,
       subject: id,
-      expiresIn: RESTAURANT_CONFIGS.accessExpire,
-      notBefore: 1
+      expiresIn: RESTAURANT_CONFIGS.accessExpire
     })
   }
 
   public static issueRestaurantRefreshToken(): string {
     return jwt.sign({}, RESTAURANT_CONFIGS.secret, {
       issuer: RESTAURANT_CONFIGS.issuer,
-      expiresIn: RESTAURANT_CONFIGS.refreshExpire,
-      notBefore: 1
+      expiresIn: RESTAURANT_CONFIGS.refreshExpire
     })
   }
 
