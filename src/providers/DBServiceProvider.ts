@@ -5,6 +5,8 @@ import RedisConnector from '@/modules/database/RedisConnector'
 import Owner from '@/models/Owner'
 import OwnerToken from '@/models/OwnerToken'
 import UserPlace from '@/models/UserPlace'
+import Restaurant from '@/models/Restaurant'
+import BusinessHour from '@/models/BusinessHour'
 
 export default class DBServiceProvider {
   public static async boot(): Promise<void> {
@@ -20,11 +22,14 @@ export default class DBServiceProvider {
     UserPlace.initModel()
     Owner.initModel()
     OwnerToken.initModel()
+    Restaurant.initModel()
+    BusinessHour.initModel()
 
     // initialize associations
     User.initAssociation()
     UserToken.initAssociation()
     OwnerToken.initAssociation()
+    Restaurant.initAssociation()
 
     // sync to database
     await User.sync()
@@ -32,5 +37,7 @@ export default class DBServiceProvider {
     await UserPlace.sync()
     await Owner.sync()
     await OwnerToken.sync()
+    await Restaurant.sync()
+    await BusinessHour.sync()
   }
 }
