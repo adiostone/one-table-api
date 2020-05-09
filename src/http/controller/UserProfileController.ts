@@ -29,13 +29,8 @@ export default class UserProfileController {
     const user = req.user as User
     const requestBody: UpdateRequestBody = req.body
 
-    if (requestBody.nickname) {
-      user.set('nickname', requestBody.nickname)
-    }
-
-    if (requestBody.image) {
-      user.set('image', requestBody.image)
-    }
+    user.set('nickname', requestBody.nickname || user.get('nickname'))
+    user.set('image', requestBody.image || user.get('image'))
 
     await user.save()
 

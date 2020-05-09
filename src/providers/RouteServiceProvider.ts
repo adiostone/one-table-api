@@ -6,7 +6,7 @@ import HttpErrorHandler from '@/http/middleware/HttpErrorHandler'
 import morgan from 'morgan'
 import fs from 'fs'
 import passport from 'passport'
-import configurePassport from '@/modules/internal/configurePassport'
+import configurePassport from '@/http/middleware/configurePassport'
 import mainRouter from '@/routes'
 
 export default class RouteServiceProvider {
