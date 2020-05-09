@@ -40,7 +40,7 @@ export default class User extends Model {
   public signedInAt: Date
   public signedUpAt: Date
 
-  public readonly place!: UserPlace
+  public readonly place: UserPlace
 
   public static associations: {
     place: Association<User, UserPlace>
