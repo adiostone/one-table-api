@@ -22,8 +22,8 @@ export default class DBServiceProvider {
     OwnerToken.initModel()
 
     // initialize associations
+    User.initAssociation()
     UserToken.initAssociation()
-    UserPlace.initAssociation()
     OwnerToken.initAssociation()
 
     // sync to database
