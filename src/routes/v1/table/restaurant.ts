@@ -14,7 +14,7 @@ restaurantRouter
 
 restaurantRouter
   .route('/:restaurantID')
-  .get()
+  .get(TableRestaurantController.getRestaurantDetail)
   .all(HttpErrorHandler.methodNotAllowedHandler)
 
 export default restaurantRouter
