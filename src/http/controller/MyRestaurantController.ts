@@ -28,6 +28,19 @@ interface CreateRequestBody {
   holiday?: string
 }
 
+interface UpdateRequestBody {
+  name?: string
+  introduction?: string
+  icon?: string
+  category?: string
+  minOrderPrice?: number
+  phoneNumber?: string
+  address1?: string
+  address2?: string
+  isPaused?: boolean
+  holiday?: string
+}
+
 interface GetCategoriesResponseBody {
   categories: string[]
 }
@@ -75,6 +88,22 @@ export default class MyRestaurantController {
 
       res.status(204).json()
     }
+  }
+
+  public static updateRestaurant: SimpleHandler = async (req, res) => {
+    const restaurant = res.locals.restaurant as Restaurant
+    const requestBody: UpdateRequestBody = req.body
+
+    await restaurant.update(requestBody)
+
+    res.status(204).json()
+  }
+
+  public static deleteRestaurant: SimpleHandler = async (req, res) => {
+    const restaurant = res.locals.restaurant as Restaurant
+    await restaurant.destroy()
+
+    res.status(204).json()
   }
 
   public static getCategories: SimpleHandler = (req, res) => {

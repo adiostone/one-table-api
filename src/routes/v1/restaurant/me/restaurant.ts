@@ -9,6 +9,8 @@ restaurantRouter
   .route('/')
   .get(CheckRestaurant.handler, MyRestaurantController.getRestaurant)
   .post(MyRestaurantController.createRestaurant)
+  .patch(CheckRestaurant.handler, MyRestaurantController.updateRestaurant)
+  .delete(CheckRestaurant.handler, MyRestaurantController.deleteRestaurant)
   .all(HttpErrorHandler.methodNotAllowedHandler)
 
 restaurantRouter
