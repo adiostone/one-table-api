@@ -1,5 +1,6 @@
-import { DataTypes, Model } from 'sequelize'
+import { Association, DataTypes, Model } from 'sequelize'
 import MySQLConnector from '@/modules/database/MySQLConnector'
+import Menu from '@/models/Menu'
 
 const schema = {
   id: {
@@ -27,6 +28,12 @@ export default class MenuCategory extends Model {
   public name: string
   public order: number
 
+  public readonly menus: Menu[]
+
+  public static associations: {
+    menus: Association<MenuCategory, Menu>
+  }
+
   public static initModel(): void {
     this.init(schema, {
       indexes: [
@@ -38,6 +45,15 @@ export default class MenuCategory extends Model {
       timestamps: false,
       tableName: 'menu_categories',
       sequelize: MySQLConnector.I.conn
+    })
+  }
+
+  public static initAssociation(): void {
+    this.hasMany(Menu, {
+      sourceKey: 'id',
+      foreignKey: 'categoryID',
+      as: 'menus',
+      onDelete: 'restrict'
     })
   }
 }

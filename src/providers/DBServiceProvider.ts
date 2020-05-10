@@ -8,6 +8,7 @@ import UserPlace from '@/models/UserPlace'
 import Restaurant from '@/models/Restaurant'
 import BusinessHour from '@/models/BusinessHour'
 import MenuCategory from '@/models/MenuCategory'
+import Menu from '@/models/Menu'
 
 export default class DBServiceProvider {
   public static async boot(): Promise<void> {
@@ -26,12 +27,14 @@ export default class DBServiceProvider {
     Restaurant.initModel()
     BusinessHour.initModel()
     MenuCategory.initModel()
+    Menu.initModel()
 
     // initialize associations
     User.initAssociation()
     UserToken.initAssociation()
     OwnerToken.initAssociation()
     Restaurant.initAssociation()
+    MenuCategory.initAssociation()
 
     // sync to database
     await User.sync()
@@ -42,5 +45,6 @@ export default class DBServiceProvider {
     await Restaurant.sync()
     await BusinessHour.sync()
     await MenuCategory.sync()
+    await Menu.sync()
   }
 }
