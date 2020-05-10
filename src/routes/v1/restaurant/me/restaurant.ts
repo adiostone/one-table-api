@@ -4,11 +4,16 @@ import CheckRestaurant from '@/http/middleware/CheckRestaurant'
 import MyRestaurantController from '@/http/controller/MyRestaurantController'
 import MyMenuController from '@/http/controller/MyMenuController'
 import CheckMenuCategory from '@/http/middleware/CheckMenuCategory'
+import CheckMenu from '@/http/middleware/CheckMenu'
 
 const restaurantRouter = express.Router()
 
 restaurantRouter.use('/menu-category', CheckRestaurant.handler)
 restaurantRouter.use('/menu-category/:categoryID', CheckMenuCategory.handler)
+restaurantRouter.use(
+  '/menu-category/:categoryID/menu/:menuID',
+  CheckMenu.handler
+)
 
 restaurantRouter
   .route('/')
