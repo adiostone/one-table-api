@@ -1,13 +1,14 @@
 import { nanoid } from 'nanoid'
 import Restaurant from '@/models/Restaurant'
 import partyServer, { PartyWS } from '@/http/websocket/partyServer'
+import User from '@/models/User'
 
 export interface PartyRoom {
   restaurant: Restaurant
   title: string
   address: string
   capacity: number
-  hostID: string
+  host: User
   members: PartyWS[]
 }
 
@@ -36,6 +37,10 @@ export default class PartyManager {
     this.partyList = {}
   }
 
+  public getPartyList(ws: PartyWS): { [key: string]: PartyRoom } {
+    return this.partyList
+  }
+
   public async createParty(
     ws: PartyWS,
     restaurantID: number,
@@ -49,7 +54,7 @@ export default class PartyManager {
       title: title,
       address: address,
       capacity: capacity,
-      hostID: ws.user.get('id'),
+      host: ws.user,
       members: [ws]
     }
     const createdPartyID = nanoid(12)
@@ -60,6 +65,42 @@ export default class PartyManager {
     partyServer.clients.forEach((ws: PartyWS) => {
       if (ws.joinedParty === null) {
         ws.emit('notifyNewParty', createdPartyID, party)
+      }
+    })
+  }
+
+  public joinParty(ws: PartyWS, partyID: string): void {
+    const party = this.partyList[partyID]
+
+    if (party === undefined) {
+      return
+    }
+
+    if (party.members.length >= party.capacity) {
+      return
+    }
+
+    party.members.push(ws)
+    ws.joinedParty = partyID
+
+    // to joined member
+    ws.emit('notifySuccessJoin', party)
+
+    // to waiting users
+    partyServer.clients.forEach((allWS: PartyWS) => {
+      if (allWS.joinedParty === null) {
+        allWS.emit('notifyChangedPartySize', partyID, party.members.length)
+      }
+    })
+
+    // to all members in this party
+    party.members.forEach(memberWS => {
+      if (ws.user.get('id') !== memberWS.user.get('id')) {
+        memberWS.emit(
+          'notifyNewMember',
+          ws.user.get('nickname'),
+          party.members.length
+        )
       }
     })
   }
