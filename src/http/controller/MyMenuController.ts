@@ -1,6 +1,8 @@
 import { SimpleHandler } from '@/http/HttpHandler'
 import Restaurant from '@/models/Restaurant'
 import MenuCategory from '@/models/MenuCategory'
+import Menu from '@/models/Menu'
+import MenuPrice from '@/models/MenuPrice'
 
 interface CreateMenuCategoryRequestBody {
   name: string
@@ -12,6 +14,20 @@ interface CreateMenuCategoryResponseBody {
 
 interface UpdateMenuCategoryRequestBody {
   name?: string
+}
+
+interface MenuPriceBody {
+  quantity?: string
+  price: number
+}
+
+interface CreateMenuRequestBody {
+  name: string
+  prices: MenuPriceBody[]
+}
+
+interface CreateMenuResponseBody {
+  createdID: number
 }
 
 export default class MyMenuController {
@@ -54,5 +70,35 @@ export default class MyMenuController {
     await menuCategory.destroy()
 
     res.status(204).json()
+  }
+
+  public static createMenu: SimpleHandler = async (req, res) => {
+    const menuCategory = res.locals.menuCategory as MenuCategory
+    const requestBody: CreateMenuRequestBody = req.body
+
+    const prices = requestBody.prices
+    delete requestBody.prices
+    Object.assign(requestBody, {
+      categoryID: menuCategory.get('id')
+    })
+
+    await Menu.create(requestBody)
+    const createdMenu = await Menu.findOne({
+      where: { categoryID: menuCategory.get('id'), name: requestBody.name }
+    })
+
+    for (const price of prices) {
+      Object.assign(price, {
+        menuID: createdMenu.get('id')
+      })
+    }
+
+    await MenuPrice.bulkCreate(prices)
+
+    const responseBody: CreateMenuResponseBody = {
+      createdID: createdMenu.get('id')
+    }
+
+    res.status(200).json(responseBody)
   }
 }
