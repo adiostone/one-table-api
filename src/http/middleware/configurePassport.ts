@@ -73,6 +73,31 @@ export default function configurePassport(): void {
     )
   )
 
+  // jwt access token strategy for table user when token is in query
+  passport.use(
+    'jwt-access-table-query',
+    new JWTStrategy(
+      {
+        jwtFromRequest: ExtractJwt.fromUrlQueryParameter('access'),
+        secretOrKey: process.env.TB_JWT_SECRET_KEY,
+        issuer: process.env.TB_JWT_ISSUER
+      },
+      (payload, done) => {
+        const id = payload.sub
+
+        User.findByPk(id).then(user => {
+          if (user === null) {
+            // 401 error
+            done(null, false)
+          } else {
+            // authenticated
+            done(null, user)
+          }
+        })
+      }
+    )
+  )
+
   // jwt refresh token strategy for table user
   passport.use(
     'jwt-refresh-table',

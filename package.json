@@ -36,6 +36,7 @@
     "morgan": "^1.9.1",
     "ms": "^2.1.2",
     "mysql2": "^2.1.0",
+    "nanoid": "^3.1.6",
     "passport": "^0.4.1",
     "passport-google-oauth20": "^2.0.0",
     "passport-jwt": "^4.0.0",
