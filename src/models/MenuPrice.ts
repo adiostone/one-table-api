@@ -18,7 +18,7 @@ const schema = {
 
 export default class MenuPrice extends Model {
   public menuID: number
-  public quantity: string
+  public quantity: string | null
   public price: number
 
   public static initModel(): void {
