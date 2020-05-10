@@ -11,7 +11,13 @@ export default class CheckTokenBlacklist {
    * @param next
    */
   public static handler: NextHandler = async (req, res, next) => {
-    const accessToken = req.headers.authorization.split(' ')[1]
+    let accessToken
+    if (!req.headers.authorization) {
+      accessToken = req.query.access
+    } else {
+      accessToken = req.headers.authorization.split(' ')[1]
+    }
+
     const value = await RedisConnector.I.conn.get(accessToken)
 
     if (value === 'blacklist') {
