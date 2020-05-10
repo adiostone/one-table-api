@@ -8,6 +8,12 @@ const restaurantRouter = express.Router()
 restaurantRouter
   .route('/')
   .get(CheckRestaurant.handler, MyRestaurantController.getRestaurant)
+  .post()
+  .all(HttpErrorHandler.methodNotAllowedHandler)
+
+restaurantRouter
+  .route('/categories')
+  .get(MyRestaurantController.getCategories)
   .all(HttpErrorHandler.methodNotAllowedHandler)
 
 export default restaurantRouter

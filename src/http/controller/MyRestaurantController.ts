@@ -15,6 +15,10 @@ interface GetResponseBody {
   registeredAt: Date
 }
 
+interface GetCategoriesResponseBody {
+  categories: string[]
+}
+
 export default class MyRestaurantController {
   public static getRestaurant: SimpleHandler = (req, res) => {
     const restaurant = res.locals.restaurant as Restaurant
@@ -31,6 +35,14 @@ export default class MyRestaurantController {
       isPaused: restaurant.get('isPaused'),
       holiday: restaurant.get('holiday'),
       registeredAt: restaurant.get('registeredAt')
+    }
+
+    res.status(200).json(responseBody)
+  }
+
+  public static getCategories: SimpleHandler = (req, res) => {
+    const responseBody: GetCategoriesResponseBody = {
+      categories: Restaurant.rawAttributes.category.values
     }
 
     res.status(200).json(responseBody)
