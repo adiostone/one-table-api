@@ -2,12 +2,17 @@ import { Association, DataTypes, Model } from 'sequelize'
 import MySQLConnector from '@/modules/database/MySQLConnector'
 import BusinessHour from '@/models/BusinessHour'
 import MenuCategory from '@/models/MenuCategory'
+import Owner from '@/models/Owner'
 
 const schema = {
   id: {
     type: DataTypes.INTEGER.UNSIGNED,
     autoIncrement: true,
     primaryKey: true
+  },
+  ownerID: {
+    type: DataTypes.STRING(64),
+    allowNull: false
   },
   name: {
     type: DataTypes.STRING(64),
@@ -61,6 +66,7 @@ const schema = {
 
 export default class Restaurant extends Model {
   public id: number
+  public ownerID: string
   public name: string
   public introduction: string
   public icon: string | null
@@ -90,6 +96,12 @@ export default class Restaurant extends Model {
   }
 
   public static initAssociation(): void {
+    this.belongsTo(Owner, {
+      foreignKey: 'ownerID',
+      targetKey: 'id',
+      onDelete: 'cascade'
+    })
+
     this.hasMany(BusinessHour, {
       sourceKey: 'id',
       foreignKey: 'restaurantID',
