@@ -29,6 +29,11 @@ restaurantRouter
   .all(HttpErrorHandler.methodNotAllowedHandler)
 
 restaurantRouter
+  .route('/all-menus')
+  .get(CheckRestaurant.handler, MyMenuController.getAllMenus)
+  .all(HttpErrorHandler.methodNotAllowedHandler)
+
+restaurantRouter
   .route('/menu-category')
   .post(MyMenuController.createMenuCategory)
   .all(HttpErrorHandler.methodNotAllowedHandler)

@@ -4,6 +4,10 @@ import MenuCategory from '@/models/MenuCategory'
 import Menu from '@/models/Menu'
 import MenuPrice from '@/models/MenuPrice'
 
+interface GetAllMenusResponseBody {
+  categories: {}[]
+}
+
 interface CreateMenuCategoryRequestBody {
   name: string
 }
@@ -36,6 +40,37 @@ interface UpdateMenuRequestBody {
 }
 
 export default class MyMenuController {
+  public static getAllMenus: SimpleHandler = async (req, res) => {
+    let restaurant = res.locals.restaurant as Restaurant
+
+    restaurant = await restaurant.reload({
+      include: [
+        {
+          association: Restaurant.associations.menuCategories,
+          attributes: ['name'],
+          include: [
+            {
+              association: MenuCategory.associations.menus,
+              attributes: ['name'],
+              include: [
+                {
+                  association: Menu.associations.prices,
+                  attributes: ['quantity', 'price']
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    })
+
+    const responseBody: GetAllMenusResponseBody = {
+      categories: restaurant.get('menuCategories')
+    }
+
+    res.json(responseBody)
+  }
+
   public static createMenuCategory: SimpleHandler = async (req, res) => {
     const restaurant = res.locals.restaurant as Restaurant
     const requestBody: CreateMenuCategoryRequestBody = req.body
