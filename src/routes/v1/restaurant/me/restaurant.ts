@@ -28,4 +28,10 @@ restaurantRouter
   .post(MyMenuController.createMenuCategory)
   .all(HttpErrorHandler.methodNotAllowedHandler)
 
+restaurantRouter
+  .route('/menu-category/:categoryID')
+  .patch(MyMenuController.updateMenuCategory)
+  .delete(MyMenuController.deleteMenuCategory)
+  .all(HttpErrorHandler.methodNotAllowedHandler)
+
 export default restaurantRouter

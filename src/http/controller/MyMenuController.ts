@@ -10,6 +10,10 @@ interface CreateMenuCategoryResponseBody {
   createdID: number
 }
 
+interface UpdateMenuCategoryRequestBody {
+  name?: string
+}
+
 export default class MyMenuController {
   public static createMenuCategory: SimpleHandler = async (req, res) => {
     const restaurant = res.locals.restaurant as Restaurant
@@ -36,5 +40,19 @@ export default class MyMenuController {
     res.status(200).json(responseBody)
   }
 
-  public static updateMenuCategory: SimpleHandler = async (req, res) => {}
+  public static updateMenuCategory: SimpleHandler = async (req, res) => {
+    const menuCategory = res.locals.menuCategory as MenuCategory
+    const requestBody: UpdateMenuCategoryRequestBody = req.body
+
+    await menuCategory.update(requestBody)
+
+    res.status(204).json()
+  }
+
+  public static deleteMenuCategory: SimpleHandler = async (req, res) => {
+    const menuCategory = res.locals.menuCategory as MenuCategory
+    await menuCategory.destroy()
+
+    res.status(204).json()
+  }
 }
