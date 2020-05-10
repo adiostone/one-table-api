@@ -13,7 +13,7 @@ interface UpdateRequestBody {
   latitude?: number
   longitude?: number
   address1?: string
-  address2?: string | null
+  address2?: string
 }
 
 export default class UserPlaceController {
@@ -22,7 +22,11 @@ export default class UserPlaceController {
     const userPlace = await UserPlace.findByPk(user.get('id'))
 
     if (userPlace === null) {
-      res.status(200).json({})
+      res.status(404).json({
+        err: {
+          msg: "This user's place not exist"
+        }
+      })
     } else {
       const body: GetResponseBody = {
         latitude: userPlace.get('latitude'),
@@ -42,33 +46,14 @@ export default class UserPlaceController {
 
     if (userPlace === null) {
       // if not exist, create
-      await UserPlace.create({
-        userID: user.get('id'),
-        latitude: requestBody.latitude,
-        longitude: requestBody.longitude,
-        address1: requestBody.address1,
-        address2: requestBody.address2
+      Object.assign(requestBody, {
+        userID: user.get('id')
       })
+
+      await UserPlace.create(requestBody)
     } else {
       // if exist, update
-      userPlace.set(
-        'latitude',
-        requestBody.latitude || userPlace.get('latitude')
-      )
-      userPlace.set(
-        'longitude',
-        requestBody.longitude || userPlace.get('longitude')
-      )
-      userPlace.set(
-        'address1',
-        requestBody.address1 || userPlace.get('address1')
-      )
-      userPlace.set(
-        'address2',
-        requestBody.address2 || userPlace.get('address2')
-      )
-
-      await userPlace.save()
+      await userPlace.update(requestBody)
     }
 
     res.status(204).json()

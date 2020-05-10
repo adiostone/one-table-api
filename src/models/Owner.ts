@@ -1,5 +1,6 @@
 import { DataTypes, Model } from 'sequelize'
 import MySQLConnector from '@/modules/database/MySQLConnector'
+import Restaurant from '@/models/Restaurant'
 
 const schema = {
   id: {
@@ -44,6 +45,15 @@ export default class Owner extends Model {
       timestamps: false,
       tableName: 'owners',
       sequelize: MySQLConnector.I.conn
+    })
+  }
+
+  public static initAssociation(): void {
+    this.hasOne(Restaurant, {
+      sourceKey: 'id',
+      foreignKey: 'ownerID',
+      as: 'restaurant',
+      onDelete: 'cascade'
     })
   }
 }

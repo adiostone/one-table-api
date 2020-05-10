@@ -1,5 +1,6 @@
-import { DataTypes, Model } from 'sequelize'
+import { Association, DataTypes, Model } from 'sequelize'
 import MySQLConnector from '@/modules/database/MySQLConnector'
+import UserPlace from '@/models/UserPlace'
 
 const schema = {
   id: {
@@ -39,11 +40,26 @@ export default class User extends Model {
   public signedInAt: Date
   public signedUpAt: Date
 
+  public readonly place: UserPlace
+
+  public static associations: {
+    place: Association<User, UserPlace>
+  }
+
   public static initModel(): void {
     this.init(schema, {
       timestamps: false,
       tableName: 'users',
       sequelize: MySQLConnector.I.conn
+    })
+  }
+
+  public static initAssociation(): void {
+    this.hasOne(UserPlace, {
+      sourceKey: 'id',
+      foreignKey: 'userID',
+      as: 'place',
+      onDelete: 'cascade'
     })
   }
 }

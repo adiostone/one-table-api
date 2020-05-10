@@ -1,6 +1,5 @@
 import { DataTypes, Model } from 'sequelize'
 import MySQLConnector from '@/modules/database/MySQLConnector'
-import User from '@/models/User'
 
 const schema = {
   userID: {
@@ -30,21 +29,13 @@ export default class UserPlace extends Model {
   public latitude: number
   public longitude: number
   public address1: string
-  public address2: string
+  public address2: string | null
 
   public static initModel(): void {
     this.init(schema, {
       timestamps: false,
       tableName: 'user_places',
       sequelize: MySQLConnector.I.conn
-    })
-  }
-
-  public static initAssociation(): void {
-    this.belongsTo(User, {
-      foreignKey: 'userID',
-      targetKey: 'id',
-      onDelete: 'cascade'
     })
   }
 }
