@@ -1,5 +1,6 @@
 import { SimpleHandler } from '@/http/HttpHandler'
 import Restaurant from '@/models/Restaurant'
+import Owner from '@/models/Owner'
 
 interface GetResponseBody {
   name: string
@@ -13,6 +14,18 @@ interface GetResponseBody {
   isPaused: boolean
   holiday: string
   registeredAt: Date
+}
+
+interface CreateRequestBody {
+  name: string
+  introduction: string
+  icon?: string
+  category: string
+  minOrderPrice?: number
+  phoneNumber: string
+  address1: string
+  address2?: string
+  holiday?: string
 }
 
 interface GetCategoriesResponseBody {
@@ -38,6 +51,30 @@ export default class MyRestaurantController {
     }
 
     res.status(200).json(responseBody)
+  }
+
+  public static createRestaurant: SimpleHandler = async (req, res) => {
+    const owner = req.user as Owner
+    const restaurant = await Restaurant.findOne({
+      where: { ownerID: owner.get('id') }
+    })
+
+    if (restaurant !== null) {
+      res.status(409).json({
+        err: {
+          msg: 'Restaurant already exists'
+        }
+      })
+    } else {
+      const requestBody: CreateRequestBody = req.body
+      Object.assign(requestBody, {
+        ownerID: owner.get('id')
+      })
+
+      await Restaurant.create(requestBody)
+
+      res.status(204).json()
+    }
   }
 
   public static getCategories: SimpleHandler = (req, res) => {

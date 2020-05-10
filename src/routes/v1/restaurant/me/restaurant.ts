@@ -8,7 +8,7 @@ const restaurantRouter = express.Router()
 restaurantRouter
   .route('/')
   .get(CheckRestaurant.handler, MyRestaurantController.getRestaurant)
-  .post()
+  .post(MyRestaurantController.createRestaurant)
   .all(HttpErrorHandler.methodNotAllowedHandler)
 
 restaurantRouter
