@@ -6,6 +6,10 @@ interface CreateMenuCategoryRequestBody {
   name: string
 }
 
+interface CreateMenuCategoryResponseBody {
+  createdID: number
+}
+
 export default class MyMenuController {
   public static createMenuCategory: SimpleHandler = async (req, res) => {
     const restaurant = res.locals.restaurant as Restaurant
@@ -21,7 +25,16 @@ export default class MyMenuController {
     })
 
     await MenuCategory.create(requestBody)
+    const createdMenuCategory = await MenuCategory.findOne({
+      where: { restaurantID: restaurant.get('id'), name: requestBody.name }
+    })
 
-    res.status(204).json()
+    const responseBody: CreateMenuCategoryResponseBody = {
+      createdID: createdMenuCategory.get('id')
+    }
+
+    res.status(200).json(responseBody)
   }
+
+  public static updateMenuCategory: SimpleHandler = async (req, res) => {}
 }
