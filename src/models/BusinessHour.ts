@@ -3,11 +3,12 @@ import MySQLConnector from '@/modules/database/MySQLConnector'
 
 const schema = {
   restaurantID: {
-    type: DataTypes.INTEGER.UNSIGNED
+    type: DataTypes.INTEGER.UNSIGNED,
+    primaryKey: true
   },
   weekday: {
     type: DataTypes.ENUM('SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'),
-    allowNull: false
+    primaryKey: true
   },
   start: {
     type: DataTypes.TIME,

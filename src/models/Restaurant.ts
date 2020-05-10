@@ -1,6 +1,7 @@
 import { Association, DataTypes, Model } from 'sequelize'
 import MySQLConnector from '@/modules/database/MySQLConnector'
 import BusinessHour from '@/models/BusinessHour'
+import MenuCategory from '@/models/MenuCategory'
 
 const schema = {
   id: {
@@ -73,9 +74,11 @@ export default class Restaurant extends Model {
   public registeredAt: Date
 
   public readonly businessHours: BusinessHour[]
+  public readonly menuCategories: MenuCategory[]
 
   public static associations: {
     businessHours: Association<Restaurant, BusinessHour>
+    menuCategories: Association<Restaurant, MenuCategory>
   }
 
   public static initModel(): void {
@@ -91,6 +94,13 @@ export default class Restaurant extends Model {
       sourceKey: 'id',
       foreignKey: 'restaurantID',
       as: 'businessHours',
+      onDelete: 'cascade'
+    })
+
+    this.hasMany(MenuCategory, {
+      sourceKey: 'id',
+      foreignKey: 'restaurantID',
+      as: 'menuCategories',
       onDelete: 'cascade'
     })
   }
