@@ -12,7 +12,11 @@ export default class CheckMenuCategory {
     })
 
     if (menuCategory === null) {
-      res.status(200).json()
+      res.status(404).json({
+        err: {
+          msg: 'Menu category not exist'
+        }
+      })
     } else {
       res.locals.menuCategory = menuCategory
       next()
