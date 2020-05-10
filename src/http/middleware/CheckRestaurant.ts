@@ -10,11 +10,7 @@ export default class CheckRestaurant {
     })
 
     if (restaurant === null) {
-      res.status(404).json({
-        err: {
-          msg: 'Restaurant not exist'
-        }
-      })
+      res.status(200).json()
     } else {
       res.locals.restaurant = restaurant
       next()
