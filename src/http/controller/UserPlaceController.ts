@@ -22,7 +22,11 @@ export default class UserPlaceController {
     const userPlace = await UserPlace.findByPk(user.get('id'))
 
     if (userPlace === null) {
-      res.status(200).json()
+      res.status(404).json({
+        err: {
+          msg: "This user's place not exist"
+        }
+      })
     } else {
       const body: GetResponseBody = {
         latitude: userPlace.get('latitude'),
