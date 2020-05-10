@@ -40,6 +40,10 @@ export default class MenuCategory extends Model {
         {
           unique: true,
           fields: ['restaurantID', 'name']
+        },
+        {
+          unique: true,
+          fields: ['restaurantID', 'order']
         }
       ],
       timestamps: false,
