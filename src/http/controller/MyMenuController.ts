@@ -47,11 +47,11 @@ export default class MyMenuController {
       include: [
         {
           association: Restaurant.associations.menuCategories,
-          attributes: ['name'],
+          attributes: ['id', 'name'],
           include: [
             {
               association: MenuCategory.associations.menus,
-              attributes: ['name'],
+              attributes: ['id', 'name'],
               include: [
                 {
                   association: Menu.associations.prices,
