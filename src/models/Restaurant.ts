@@ -12,7 +12,8 @@ const schema = {
   },
   ownerID: {
     type: DataTypes.STRING(64),
-    allowNull: false
+    allowNull: false,
+    unique: true
   },
   name: {
     type: DataTypes.STRING(64),
