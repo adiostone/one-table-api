@@ -30,6 +30,11 @@ interface CreateMenuResponseBody {
   createdID: number
 }
 
+interface UpdateMenuRequestBody {
+  name?: string
+  prices?: MenuPriceBody[]
+}
+
 export default class MyMenuController {
   public static createMenuCategory: SimpleHandler = async (req, res) => {
     const restaurant = res.locals.restaurant as Restaurant
@@ -100,5 +105,38 @@ export default class MyMenuController {
     }
 
     res.status(200).json(responseBody)
+  }
+
+  public static updateMenu: SimpleHandler = async (req, res) => {
+    const menu = res.locals.menu as Menu
+    const requestBody: UpdateMenuRequestBody = req.body
+
+    const prices = requestBody.prices
+    delete requestBody.prices
+
+    await menu.update(requestBody)
+
+    if (prices) {
+      await MenuPrice.destroy({
+        where: { menuID: menu.get('id') }
+      })
+
+      for (const price of prices) {
+        Object.assign(price, {
+          menuID: menu.get('id')
+        })
+      }
+
+      await MenuPrice.bulkCreate(prices)
+    }
+
+    res.status(204).json()
+  }
+
+  public static deleteMenu: SimpleHandler = async (req, res) => {
+    const menu = res.locals.menu as Menu
+    await menu.destroy()
+
+    res.status(204).json()
   }
 }
