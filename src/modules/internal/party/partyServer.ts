@@ -76,6 +76,11 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
 
     ws.send(JSON.stringify(message))
   })
+
+  ws.on('close', () => {
+    ws.isAlive = false
+    ws.terminate()
+  })
 })
 
 partyServer.on('close', () => {
