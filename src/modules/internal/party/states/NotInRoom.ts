@@ -7,6 +7,7 @@ interface NotifyNewPartyBody {
   title: string
   address: string
   capacity: number
+  size: number
 }
 
 export default class NotInRoom extends State {
@@ -17,7 +18,8 @@ export default class NotInRoom extends State {
       restaurantID: newPartyRoom.restaurantID,
       title: newPartyRoom.title,
       address: newPartyRoom.address,
-      capacity: newPartyRoom.capacity
+      capacity: newPartyRoom.capacity,
+      size: newPartyRoom.members.length
     }
 
     this._ws.emit('sendPartyMessage', operation, body)

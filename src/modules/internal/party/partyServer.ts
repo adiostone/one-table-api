@@ -32,6 +32,15 @@ interface CreatePartyBody {
   capacity: number
 }
 
+type ReplyGetPartyListBody = {
+  id: string
+  restaurantID: number
+  title: string
+  address: string
+  capacity: number
+  size: number
+}[]
+
 const partyServer = new WebSocket.Server({ noServer: true })
 export const partyRoomList: { [key: string]: PartyRoom } = {}
 
@@ -101,6 +110,27 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
   ws.on('close', () => {
     ws.isAlive = false
     ws.terminate()
+  })
+
+  /**
+   * Get all near party list.
+   */
+  ws.on('getPartyList', () => {
+    const operation = 'replyGetPartyList'
+    const body: ReplyGetPartyListBody = Object.values(partyRoomList).map(
+      partyRoom => {
+        return {
+          id: partyRoom.id,
+          restaurantID: partyRoom.restaurantID,
+          title: partyRoom.title,
+          address: partyRoom.address,
+          capacity: partyRoom.capacity,
+          size: partyRoom.members.length
+        }
+      }
+    )
+
+    ws.emit('sendPartyMessage', operation, body)
   })
 
   /**
