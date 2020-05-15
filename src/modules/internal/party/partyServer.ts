@@ -3,10 +3,21 @@ import User from '@/models/User'
 import { HttpRequest } from '@/http/HttpHandler'
 import { setInterval } from 'timers'
 import ms from 'ms'
+import PartyRoom from '@/modules/internal/party/PartyRoom'
+import State from '@/modules/internal/party/states/State'
+import NotInRoom from '@/modules/internal/party/states/NotInRoom'
+import InRoom from '@/modules/internal/party/states/InRoom'
 
-export interface PartyWS extends WebSocket {
-  isAlive: boolean
-  user: User
+export class PartyWS extends WebSocket {
+  public isAlive: boolean
+  public user: User
+  public roomID: string | null
+  public state: State
+
+  public transitionTo(state: State): void {
+    this.state = state
+    this.state.ws = this
+  }
 }
 
 interface PartyMessage {
@@ -14,7 +25,15 @@ interface PartyMessage {
   body?: {}
 }
 
+interface CreatePartyBody {
+  restaurantID: number
+  title: string
+  address: string
+  capacity: number
+}
+
 const partyServer = new WebSocket.Server({ noServer: true })
+export const partyRoomList: { [key: string]: PartyRoom } = {}
 
 // repeatedly check heartbeat of each clients
 const heartbeat = setInterval(() => {
@@ -33,6 +52,8 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
   // initialize connection
   ws.isAlive = true
   ws.user = req.user as User
+  ws.roomID = null
+  ws.transitionTo(new NotInRoom())
 
   /* Register events */
 
@@ -80,6 +101,27 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
   ws.on('close', () => {
     ws.isAlive = false
     ws.terminate()
+  })
+
+  /**
+   * Create new party room.
+   */
+  ws.on('createParty', (body: CreatePartyBody) => {
+    const partyRoom = new PartyRoom(
+      body.restaurantID,
+      body.title,
+      body.address,
+      body.capacity,
+      ws
+    )
+
+    partyRoomList[partyRoom.id] = partyRoom
+    ws.transitionTo(new InRoom())
+
+    // notify
+    partyServer.clients.forEach((ws: PartyWS) => {
+      ws.state.notifyNewParty(partyRoom)
+    })
   })
 })
 
