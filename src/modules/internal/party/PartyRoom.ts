@@ -2,6 +2,12 @@ import { PartyWS } from '@/modules/internal/party/partyServer'
 import { nanoid } from 'nanoid'
 import Restaurant from '@/models/Restaurant'
 
+export interface Chat {
+  id: string
+  nickname: string
+  chat: string
+}
+
 export default class PartyRoom {
   public id: string
   public restaurant: Restaurant
@@ -9,6 +15,7 @@ export default class PartyRoom {
   public address: string
   public capacity: number
   public members: PartyWS[]
+  public chats: Chat[]
 
   public async createParty(
     restaurantID: number,
@@ -56,5 +63,13 @@ export default class PartyRoom {
       this.members.splice(wsIndex, 1)
       ws.roomID = null
     }
+  }
+
+  public sendChat(ws: PartyWS, chat: string): void {
+    this.chats.push({
+      id: ws.user.get('id'),
+      nickname: ws.user.get('nickname'),
+      chat: chat
+    })
   }
 }
