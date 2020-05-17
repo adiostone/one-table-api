@@ -37,6 +37,10 @@ interface CreatePartyBody {
   capacity: number
 }
 
+interface ReplyCreatePartyBody {
+  isSuccess: boolean
+}
+
 type ReplyGetPartyListBody = {
   id: string
   restaurant: {
@@ -188,6 +192,10 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
    */
   ws.on('createParty', (body: CreatePartyBody) => {
     const partyRoom = new PartyRoom()
+    const replyOperation = 'replyCreateParty'
+    const replyBody: ReplyCreatePartyBody = {
+      isSuccess: true
+    }
 
     partyRoom
       .createParty(
