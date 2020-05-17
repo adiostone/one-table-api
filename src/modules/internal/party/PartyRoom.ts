@@ -30,14 +30,16 @@ export default class PartyRoom {
       this.title,
       this.address,
       this.capacity,
-      this.members
+      this.members,
+      this.chats
     ] = [
       nanoid(12),
       await Restaurant.findByPk(restaurantID),
       title,
       address,
       capacity,
-      [hostWS]
+      [hostWS],
+      []
     ]
 
     hostWS.roomID = this.id
