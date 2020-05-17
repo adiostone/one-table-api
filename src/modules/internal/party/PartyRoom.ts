@@ -48,4 +48,13 @@ export default class PartyRoom {
     this.members.push(ws)
     ws.roomID = this.id
   }
+
+  public leaveParty(ws: PartyWS): void {
+    const wsIndex = this.members.indexOf(ws)
+
+    if (wsIndex >= 0) {
+      this.members.splice(wsIndex, 1)
+      ws.roomID = null
+    }
+  }
 }

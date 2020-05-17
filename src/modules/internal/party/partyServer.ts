@@ -82,6 +82,10 @@ type ReplyGetMyPartyMemberListBody = {
   isHost: boolean
 }[]
 
+interface ReplyLeavePartyBody {
+  isSuccess: boolean
+}
+
 const partyServer = new WebSocket.Server({ noServer: true })
 export const partyRoomList: { [key: string]: PartyRoom } = {}
 
@@ -120,6 +124,8 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
    * And then trigger proper event.
    */
   ws.on('message', msg => {
+    console.log('incoming msg: ' + msg)
+
     // decode received message
     const message: PartyMessage = JSON.parse(msg as string)
 
@@ -145,6 +151,7 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
       message.body = body
     }
 
+    console.log('send message: ' + JSON.stringify(message))
     ws.send(JSON.stringify(message))
   })
 
@@ -235,12 +242,12 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
 
     transitionTo(ws, new InRoom())
 
+    ws.emit('sendPartyMessage', replyOperation, replyBody)
+
     // notify
-    partyRoom.members.forEach(partyWS => {
+    partyServer.clients.forEach((partyWS: PartyWS) => {
       partyWS.state.notifyJoinParty(partyRoom, ws.user)
     })
-
-    ws.emit('sendPartyMessage', replyOperation, replyBody)
   })
 
   ws.on('getMyPartyMetadata', () => {
@@ -280,6 +287,46 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
     body[0].isHost = true
 
     ws.emit('sendPartyMessage', operation, body)
+  })
+
+  ws.on('leaveParty', () => {
+    const myParty = partyRoomList[ws.roomID]
+    const hostID = myParty.members[0].user.get('id')
+    const replyOperation = 'replyLeaveParty'
+    const replyBody: ReplyLeavePartyBody = {
+      isSuccess: true
+    }
+
+    // if host, delete party
+    if (ws.user.get('id') === hostID) {
+      // first notify to not in room users
+      delete partyRoomList[ws.roomID]
+      partyServer.clients.forEach((partyWS: PartyWS) => {
+        partyWS.state.notifyDeleteParty(myParty)
+      })
+
+      // second notify to all members except host
+      for (let i = 1; i < myParty.members.length; i++) {
+        const currWS = myParty.members[1]
+        myParty.leaveParty(currWS)
+        transitionTo(currWS, new NotInRoom())
+        currWS.emit('sendPartyMessage', 'notifyKickedOutParty')
+      }
+
+      // finally notify to the host
+      myParty.leaveParty(ws)
+      transitionTo(ws, new NotInRoom())
+      ws.emit('sendPartyMessage', replyOperation, replyBody)
+    } else {
+      myParty.leaveParty(ws)
+      transitionTo(ws, new NotInRoom())
+
+      ws.emit('sendPartyMessage', replyOperation, replyBody)
+
+      partyServer.clients.forEach((partyWS: PartyWS) => {
+        partyWS.state.notifyLeaveParty(myParty, ws.user)
+      })
+    }
   })
 })
 
