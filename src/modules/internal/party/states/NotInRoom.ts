@@ -71,4 +71,8 @@ export default class NotInRoom extends State {
 
     this._ws.emit('sendPartyMessage', operation, body)
   }
+
+  public notifyNewChat(partyRoom: PartyRoom): void {
+    // do nothing
+  }
 }

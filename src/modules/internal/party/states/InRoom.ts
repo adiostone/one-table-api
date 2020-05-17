@@ -1,5 +1,5 @@
 import State from '@/modules/internal/party/states/State'
-import PartyRoom from '@/modules/internal/party/PartyRoom'
+import PartyRoom, { Chat } from '@/modules/internal/party/PartyRoom'
 import User from '@/models/User'
 
 interface NotifyNewMemberBody {
@@ -17,6 +17,8 @@ interface NotifyOutMemberBody {
     id: string
   }
 }
+
+type NotifyNewChatBody = Chat
 
 export default class InRoom extends State {
   public notifyNewParty(newPartyRoom: PartyRoom): void {
@@ -44,7 +46,7 @@ export default class InRoom extends State {
   }
 
   public notifyLeaveParty(partyRoom: PartyRoom, outMember: User): void {
-    // only notify to members in same party except out member
+    // only notify to members in same party
     if (this._ws.roomID === partyRoom.id) {
       const operation = 'notifyOutMember'
       const body: NotifyOutMemberBody = {
@@ -60,5 +62,15 @@ export default class InRoom extends State {
 
   public notifyDeleteParty(partyRoom: PartyRoom): void {
     // do nothing
+  }
+
+  public notifyNewChat(partyRoom: PartyRoom): void {
+    // only notify to members in same party
+    if (this._ws.roomID === partyRoom.id) {
+      const operation = 'notifyNewChat'
+      const body: NotifyNewChatBody = partyRoom.chats.slice(-1)[0]
+
+      this._ws.emit('sendPartyMessage', operation, body)
+    }
   }
 }
