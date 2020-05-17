@@ -71,6 +71,13 @@ interface ReplyGetMyPartyMetadataBody {
   size: number
 }
 
+type ReplyGetMyPartyMemberListBody = {
+  id: string
+  nickname: string
+  image: string
+  isHost: boolean
+}[]
+
 const partyServer = new WebSocket.Server({ noServer: true })
 export const partyRoomList: { [key: string]: PartyRoom } = {}
 
@@ -242,6 +249,25 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
       capacity: myParty.capacity,
       size: myParty.members.length
     }
+
+    ws.emit('sendPartyMessage', operation, body)
+  })
+
+  ws.on('getMyPartyMemberList', () => {
+    const myParty = partyRoomList[ws.roomID]
+
+    const operation = 'replyGetMyPartyMemberList'
+    const body: ReplyGetMyPartyMemberListBody = myParty.members.map(
+      memberWS => {
+        return {
+          id: memberWS.user.get('id'),
+          nickname: memberWS.user.get('nickname'),
+          image: memberWS.user.get('image'),
+          isHost: false
+        }
+      }
+    )
+    body[0].isHost = true
 
     ws.emit('sendPartyMessage', operation, body)
   })
