@@ -15,6 +15,10 @@ const schema = {
   name: {
     type: DataTypes.STRING(64),
     allowNull: false
+  },
+  image: {
+    type: DataTypes.STRING(256),
+    allowNull: true
   }
 }
 
@@ -22,6 +26,7 @@ export default class Menu extends Model {
   public id: number
   public categoryID: number
   public name: string
+  public image: string | null
 
   public readonly prices: MenuPrice[]
 

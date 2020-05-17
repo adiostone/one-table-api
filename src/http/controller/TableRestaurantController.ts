@@ -2,6 +2,8 @@ import { SimpleHandler } from '@/http/HttpHandler'
 import Restaurant from '@/models/Restaurant'
 import MenuCategory from '@/models/MenuCategory'
 import Menu from '@/models/Menu'
+import User from '@/models/User'
+import getDistance from '@/modules/internal/getDistance'
 
 interface RestaurantBody {
   id: number
@@ -23,6 +25,8 @@ interface GetRestaurantDetailBody {
   category: string
   minOrderPrice: number
   phoneNumber: string
+  latitude: number
+  longitude: number
   address1: string
   address2: string | null
   holiday: string
@@ -46,9 +50,45 @@ export default class TableRestaurantController {
       return
     }
 
-    const restaurants = await Restaurant.findAll({
+    let restaurants = await Restaurant.findAll({
       where: { category: category, isPaused: false },
-      attributes: ['id', 'name', 'icon', 'category', 'minOrderPrice']
+      attributes: [
+        'id',
+        'name',
+        'icon',
+        'category',
+        'minOrderPrice',
+        'latitude',
+        'longitude'
+      ]
+    })
+
+    // get current user's latitude and longitude
+    let user = req.user as User
+    user = await user.reload({
+      include: [
+        {
+          association: User.associations.place,
+          attributes: ['latitude', 'longitude']
+        }
+      ],
+      plain: true
+    })
+    user = user.toJSON() as User
+
+    // only contain near restaurants from the user
+    restaurants = restaurants.filter(restaurant => {
+      const currLatitude1 = restaurant.get('latitude')
+      const currLongitude1 = restaurant.get('longitude')
+
+      const distanceInKM = getDistance(
+        currLatitude1,
+        currLongitude1,
+        user.place.latitude,
+        user.place.longitude
+      )
+
+      return distanceInKM <= 3
     })
 
     const responseBody: GetRestaurantsBody = {
@@ -70,6 +110,8 @@ export default class TableRestaurantController {
         'category',
         'minOrderPrice',
         'phoneNumber',
+        'latitude',
+        'longitude',
         'address1',
         'address2',
         'holiday',
@@ -82,7 +124,7 @@ export default class TableRestaurantController {
           include: [
             {
               association: MenuCategory.associations.menus,
-              attributes: ['name'],
+              attributes: ['name', 'image'],
               include: [
                 {
                   association: Menu.associations.prices,
