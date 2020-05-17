@@ -209,6 +209,8 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
         partyRoomList[partyRoom.id] = partyRoom
         transitionTo(ws, new InRoom())
 
+        ws.emit('sendPartyMessage', replyOperation, replyBody)
+
         // notify
         partyServer.clients.forEach((partyWS: PartyWS) => {
           partyWS.state.notifyNewParty(partyRoom)
