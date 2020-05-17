@@ -82,7 +82,7 @@ export default class TableRestaurantController {
           include: [
             {
               association: MenuCategory.associations.menus,
-              attributes: ['name'],
+              attributes: ['name', 'image'],
               include: [
                 {
                   association: Menu.associations.prices,

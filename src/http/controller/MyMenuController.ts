@@ -27,6 +27,7 @@ interface MenuPriceBody {
 
 interface CreateMenuRequestBody {
   name: string
+  image: string | null
   prices: MenuPriceBody[]
 }
 
@@ -36,6 +37,7 @@ interface CreateMenuResponseBody {
 
 interface UpdateMenuRequestBody {
   name?: string
+  image?: string
   prices?: MenuPriceBody[]
 }
 
@@ -51,7 +53,7 @@ export default class MyMenuController {
           include: [
             {
               association: MenuCategory.associations.menus,
-              attributes: ['id', 'name'],
+              attributes: ['id', 'name', 'image'],
               include: [
                 {
                   association: Menu.associations.prices,
