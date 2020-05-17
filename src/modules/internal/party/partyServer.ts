@@ -50,6 +50,27 @@ type ReplyGetPartyListBody = {
   size: number
 }[]
 
+interface JoinPartyBody {
+  id: string
+}
+
+interface ReplyJoinPartyBody {
+  isSuccess: boolean
+}
+
+interface ReplyGetMyPartyMetadataBody {
+  id: string
+  restaurant: {
+    id: number
+    name: string
+    icon: string
+  }
+  title: string
+  address: string
+  capacity: number
+  size: number
+}
+
 const partyServer = new WebSocket.Server({ noServer: true })
 export const partyRoomList: { [key: string]: PartyRoom } = {}
 
@@ -174,10 +195,55 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
         transitionTo(ws, new InRoom())
 
         // notify
-        partyServer.clients.forEach((ws: PartyWS) => {
-          ws.state.notifyNewParty(partyRoom)
+        partyServer.clients.forEach((partyWS: PartyWS) => {
+          partyWS.state.notifyNewParty(partyRoom)
         })
       })
+  })
+
+  ws.on('joinParty', (body: JoinPartyBody) => {
+    const partyRoom = partyRoomList[body.id]
+    const replyOperation = 'replyJoinParty'
+    const replyBody: ReplyJoinPartyBody = {
+      isSuccess: true
+    }
+
+    try {
+      partyRoom.joinParty(ws)
+    } catch (e) {
+      replyBody.isSuccess = false
+      ws.emit('sendPartyMessage', replyOperation, replyBody)
+      return
+    }
+
+    transitionTo(ws, new InRoom())
+
+    // notify
+    partyRoom.members.forEach(partyWS => {
+      partyWS.state.notifyJoinParty(partyRoom, ws.user)
+    })
+
+    ws.emit('sendPartyMessage', replyOperation, replyBody)
+  })
+
+  ws.on('getMyPartyMetadata', () => {
+    const myParty = partyRoomList[ws.roomID]
+
+    const operation = 'replyGetMyPartyMetadata'
+    const body: ReplyGetMyPartyMetadataBody = {
+      id: myParty.id,
+      restaurant: {
+        id: myParty.restaurant.get('id'),
+        name: myParty.restaurant.get('name'),
+        icon: myParty.restaurant.get('icon')
+      },
+      title: myParty.title,
+      address: myParty.address,
+      capacity: myParty.capacity,
+      size: myParty.members.length
+    }
+
+    ws.emit('sendPartyMessage', operation, body)
   })
 })
 
