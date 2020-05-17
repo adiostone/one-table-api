@@ -3,7 +3,11 @@ import PartyRoom from '@/modules/internal/party/PartyRoom'
 
 interface NotifyNewPartyBody {
   id: string
-  restaurantID: number
+  restaurant: {
+    id: number
+    name: string
+    icon: string
+  }
   title: string
   address: string
   capacity: number
@@ -15,7 +19,11 @@ export default class NotInRoom extends State {
     const operation = 'notifyNewParty'
     const body: NotifyNewPartyBody = {
       id: newPartyRoom.id,
-      restaurantID: newPartyRoom.restaurantID,
+      restaurant: {
+        id: newPartyRoom.restaurant.get('id'),
+        name: newPartyRoom.restaurant.get('name'),
+        icon: newPartyRoom.restaurant.get('icon')
+      },
       title: newPartyRoom.title,
       address: newPartyRoom.address,
       capacity: newPartyRoom.capacity,

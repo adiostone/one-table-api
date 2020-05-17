@@ -34,7 +34,11 @@ interface CreatePartyBody {
 
 type ReplyGetPartyListBody = {
   id: string
-  restaurantID: number
+  restaurant: {
+    id: number
+    name: string
+    icon: string
+  }
   title: string
   address: string
   capacity: number
@@ -121,7 +125,11 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
       partyRoom => {
         return {
           id: partyRoom.id,
-          restaurantID: partyRoom.restaurantID,
+          restaurant: {
+            id: partyRoom.restaurant.get('id'),
+            name: partyRoom.restaurant.get('name'),
+            icon: partyRoom.restaurant.get('icon')
+          },
           title: partyRoom.title,
           address: partyRoom.address,
           capacity: partyRoom.capacity,
@@ -137,21 +145,25 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
    * Create new party room.
    */
   ws.on('createParty', (body: CreatePartyBody) => {
-    const partyRoom = new PartyRoom(
-      body.restaurantID,
-      body.title,
-      body.address,
-      body.capacity,
-      ws
-    )
+    const partyRoom = new PartyRoom()
 
-    partyRoomList[partyRoom.id] = partyRoom
-    ws.transitionTo(new InRoom())
+    partyRoom
+      .createParty(
+        body.restaurantID,
+        body.title,
+        body.address,
+        body.capacity,
+        ws
+      )
+      .then(() => {
+        partyRoomList[partyRoom.id] = partyRoom
+        ws.transitionTo(new InRoom())
 
-    // notify
-    partyServer.clients.forEach((ws: PartyWS) => {
-      ws.state.notifyNewParty(partyRoom)
-    })
+        // notify
+        partyServer.clients.forEach((ws: PartyWS) => {
+          ws.state.notifyNewParty(partyRoom)
+        })
+      })
   })
 })
 
