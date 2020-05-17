@@ -48,4 +48,15 @@ export default class NotInRoom extends State {
 
     this._ws.emit('sendPartyMessage', operation, body)
   }
+
+  public notifyLeaveParty(partyRoom: PartyRoom, outMember: User): void {
+    const operation = 'notifyChangedPartySize'
+    const body: NotifyChangedPartySizeBody = {
+      id: partyRoom.id,
+      size: partyRoom.members.length
+    }
+
+    this._ws.emit('sendPartyMessage', operation, body)
+  }
+
 }

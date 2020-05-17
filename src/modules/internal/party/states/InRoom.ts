@@ -11,6 +11,13 @@ interface NotifyNewMemberBody {
   }
 }
 
+interface NotifyOutMemberBody {
+  size: number
+  user: {
+    id: string
+  }
+}
+
 export default class InRoom extends State {
   public notifyNewParty(newPartyRoom: PartyRoom): void {
     // do nothing
@@ -35,4 +42,20 @@ export default class InRoom extends State {
       this._ws.emit('sendPartyMessage', operation, body)
     }
   }
+
+  public notifyLeaveParty(partyRoom: PartyRoom, outMember: User): void {
+    // only notify to members in same party except out member
+    if (this._ws.roomID === partyRoom.id) {
+      const operation = 'notifyOutMember'
+      const body: NotifyOutMemberBody = {
+        size: partyRoom.members.length,
+        user: {
+          id: outMember.get('id')
+        }
+      }
+
+      this._ws.emit('sendPartyMessage', operation, body)
+    }
+  }
+
 }
