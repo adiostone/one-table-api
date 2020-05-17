@@ -25,6 +25,11 @@ interface PartyMessage {
   body?: {}
 }
 
+interface ErrorBody {
+  errorOperation: string
+  errorMessage: string
+}
+
 interface CreatePartyBody {
   restaurantID: number
   title: string
@@ -53,7 +58,7 @@ const heartbeat = setInterval(() => {
   partyServer.clients.forEach((ws: PartyWS) => {
     // broken connection
     if (ws.isAlive === false) {
-      ws.terminate()
+      ws.emit('close')
     }
 
     ws.isAlive = false
@@ -92,7 +97,7 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
       ws.emit(message.operation, message.body)
     } else {
       // send error message
-      ws.emit('sendPartyMessage', 'error', 'invalid operation')
+      ws.emit('sendErrorMessage', message.operation, 'invalid operation')
     }
   })
 
@@ -111,9 +116,18 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
     ws.send(JSON.stringify(message))
   })
 
+  ws.on('sendErrorMessage', (errorOperation, errorMessage) => {
+    const errorBody: ErrorBody = {
+      errorOperation: errorOperation,
+      errorMessage: errorMessage
+    }
+
+    ws.emit('sendPartyMessage', 'error', errorBody)
+  })
+
   ws.on('close', () => {
     ws.isAlive = false
-    ws.terminate()
+    ws.close()
   })
 
   /**
