@@ -23,6 +23,8 @@ interface GetRestaurantDetailBody {
   category: string
   minOrderPrice: number
   phoneNumber: string
+  latitude: number
+  longitude: number
   address1: string
   address2: string | null
   holiday: string
@@ -70,6 +72,8 @@ export default class TableRestaurantController {
         'category',
         'minOrderPrice',
         'phoneNumber',
+        'latitude',
+        'longitude',
         'address1',
         'address2',
         'holiday',

@@ -40,6 +40,14 @@ const schema = {
     type: DataTypes.STRING(20),
     allowNull: false
   },
+  latitude: {
+    type: DataTypes.DECIMAL(10, 8),
+    allowNull: false
+  },
+  longitude: {
+    type: DataTypes.DECIMAL(11, 8),
+    allowNull: false
+  },
   address1: {
     type: DataTypes.STRING(256),
     allowNull: false
@@ -50,7 +58,7 @@ const schema = {
   },
   isPaused: {
     type: DataTypes.BOOLEAN,
-    defaultValue: true,
+    defaultValue: false,
     allowNull: false
   },
   holiday: {
@@ -74,6 +82,8 @@ export default class Restaurant extends Model {
   public category: string
   public minOrderPrice: number
   public phoneNumber: string
+  public latitude: number
+  public longitude: number
   public address1: string
   public address2: string | null
   public isPaused: boolean

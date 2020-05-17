@@ -9,6 +9,8 @@ interface GetResponseBody {
   category: string
   minOrderPrice: number
   phoneNumber: string
+  latitude: number
+  longitude: number
   address1: string
   address2: string | null
   isPaused: boolean
@@ -23,8 +25,10 @@ interface CreateRequestBody {
   category: string
   minOrderPrice?: number
   phoneNumber: string
+  latitude: number
+  longitude: number
   address1: string
-  address2?: string
+  address2: string | null
   holiday?: string
 }
 
@@ -35,6 +39,8 @@ interface UpdateRequestBody {
   category?: string
   minOrderPrice?: number
   phoneNumber?: string
+  latitude?: number
+  longitude?: number
   address1?: string
   address2?: string
   isPaused?: boolean
@@ -56,6 +62,8 @@ export default class MyRestaurantController {
       category: restaurant.get('category'),
       minOrderPrice: restaurant.get('minOrderPrice'),
       phoneNumber: restaurant.get('phoneNumber'),
+      latitude: restaurant.get('latitude'),
+      longitude: restaurant.get('longitude'),
       address1: restaurant.get('address1'),
       address2: restaurant.get('address2'),
       isPaused: restaurant.get('isPaused'),
