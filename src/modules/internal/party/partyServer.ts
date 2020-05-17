@@ -8,16 +8,16 @@ import State from '@/modules/internal/party/states/State'
 import NotInRoom from '@/modules/internal/party/states/NotInRoom'
 import InRoom from '@/modules/internal/party/states/InRoom'
 
-export class PartyWS extends WebSocket {
-  public isAlive: boolean
-  public user: User
-  public roomID: string | null
-  public state: State
+export interface PartyWS extends WebSocket {
+  isAlive: boolean
+  user: User
+  roomID: string | null
+  state: State
+}
 
-  public transitionTo(state: State): void {
-    this.state = state
-    this.state.ws = this
-  }
+export function transitionTo(ws: PartyWS, state: State): void {
+  ws.state = state
+  ws.state.ws = ws
 }
 
 interface PartyMessage {
@@ -66,7 +66,7 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
   ws.isAlive = true
   ws.user = req.user as User
   ws.roomID = null
-  ws.transitionTo(new NotInRoom())
+  transitionTo(ws, new NotInRoom())
 
   /* Register events */
 
@@ -157,7 +157,7 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
       )
       .then(() => {
         partyRoomList[partyRoom.id] = partyRoom
-        ws.transitionTo(new InRoom())
+        transitionTo(ws, new InRoom())
 
         // notify
         partyServer.clients.forEach((ws: PartyWS) => {
