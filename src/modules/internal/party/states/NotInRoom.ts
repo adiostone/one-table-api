@@ -20,6 +20,10 @@ interface NotifyChangedPartySizeBody {
   size: number
 }
 
+interface NotifyDeletePartyBody {
+  id: string
+}
+
 export default class NotInRoom extends State {
   public notifyNewParty(newPartyRoom: PartyRoom): void {
     const operation = 'notifyNewParty'
@@ -59,4 +63,12 @@ export default class NotInRoom extends State {
     this._ws.emit('sendPartyMessage', operation, body)
   }
 
+  public notifyDeleteParty(partyRoom: PartyRoom): void {
+    const operation = 'notifyDeleteParty'
+    const body: NotifyDeletePartyBody = {
+      id: partyRoom.id
+    }
+
+    this._ws.emit('sendPartyMessage', operation, body)
+  }
 }

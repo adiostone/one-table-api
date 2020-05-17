@@ -14,4 +14,6 @@ export default abstract class State {
   public abstract notifyJoinParty(partyRoom: PartyRoom, newMember: User): void
 
   public abstract notifyLeaveParty(partyRoom: PartyRoom, outMember: User): void
+
+  public abstract notifyDeleteParty(partyRoom: PartyRoom): void
 }

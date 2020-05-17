@@ -58,4 +58,7 @@ export default class InRoom extends State {
     }
   }
 
+  public notifyDeleteParty(partyRoom: PartyRoom): void {
+    // do nothing
+  }
 }
