@@ -3,7 +3,7 @@ import User from '@/models/User'
 import { HttpRequest } from '@/http/HttpHandler'
 import { setInterval } from 'timers'
 import ms from 'ms'
-import PartyRoom from '@/modules/internal/party/PartyRoom'
+import PartyRoom, { Chat } from '@/modules/internal/party/PartyRoom'
 import State from '@/modules/internal/party/states/State'
 import NotInRoom from '@/modules/internal/party/states/NotInRoom'
 import InRoom from '@/modules/internal/party/states/InRoom'
@@ -85,6 +85,12 @@ type ReplyGetMyPartyMemberListBody = {
 interface ReplyLeavePartyBody {
   isSuccess: boolean
 }
+
+interface SendChatBody {
+  chat: string
+}
+
+type ReplyGetMyPartyChats = Chat[]
 
 const partyServer = new WebSocket.Server({ noServer: true })
 export const partyRoomList: { [key: string]: PartyRoom } = {}
@@ -327,6 +333,24 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
         partyWS.state.notifyLeaveParty(myParty, ws.user)
       })
     }
+  })
+
+  ws.on('getMyPartyChats', () => {
+    const myParty = partyRoomList[ws.roomID]
+
+    const operation = 'replyGetMyPartyChats'
+    const body: ReplyGetMyPartyChats = myParty.chats
+
+    ws.emit('sendPartyMessage', operation, body)
+  })
+
+  ws.on('sendChat', (body: SendChatBody) => {
+    const partyRoom = partyRoomList[ws.roomID]
+    partyRoom.sendChat(ws, body.chat)
+
+    partyRoom.members.forEach(partyWS => {
+      partyWS.state.notifyNewChat(partyRoom)
+    })
   })
 })
 
