@@ -1,5 +1,6 @@
 import { PartyWS } from '@/modules/internal/party/partyServer'
 import PartyRoom from '@/modules/internal/party/PartyRoom'
+import User from '@/models/User'
 
 export default abstract class State {
   protected _ws: PartyWS
@@ -9,4 +10,6 @@ export default abstract class State {
   }
 
   public abstract notifyNewParty(newPartyRoom: PartyRoom): void
+
+  public abstract notifyJoinParty(partyRoom: PartyRoom, newMember: User): void
 }

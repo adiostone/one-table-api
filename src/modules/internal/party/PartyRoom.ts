@@ -35,4 +35,17 @@ export default class PartyRoom {
 
     hostWS.roomID = this.id
   }
+
+  public joinParty(ws: PartyWS): void {
+    if (ws.roomID !== null) {
+      throw Error('this user is already joined to another party')
+    }
+
+    if (this.capacity <= this.members.length) {
+      throw Error('this party room is already full')
+    }
+
+    this.members.push(ws)
+    ws.roomID = this.id
+  }
 }
