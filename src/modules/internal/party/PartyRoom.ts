@@ -45,6 +45,10 @@ export default class PartyRoom {
     hostWS.roomID = this.id
   }
 
+  public getHost(): PartyWS {
+    return this.members[0]
+  }
+
   public joinParty(ws: PartyWS): void {
     if (ws.roomID !== null) {
       throw Error('this user is already joined to another party')

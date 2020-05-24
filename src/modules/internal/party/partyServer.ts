@@ -161,6 +161,9 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
     ws.send(JSON.stringify(message))
   })
 
+  /**
+   * Send error message.
+   */
   ws.on('sendErrorMessage', (errorOperation, errorMessage) => {
     const errorBody: ErrorBody = {
       errorOperation: errorOperation,
@@ -170,6 +173,9 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
     ws.emit('sendPartyMessage', 'error', errorBody)
   })
 
+  /**
+   * Close party websocket connection.
+   */
   ws.on('close', () => {
     ws.isAlive = false
     ws.close()
@@ -256,6 +262,9 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
     })
   })
 
+  /**
+   * Get my party's metadata.
+   */
   ws.on('getMyPartyMetadata', () => {
     const myParty = partyRoomList[ws.roomID]
 
@@ -286,11 +295,10 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
           id: memberWS.user.get('id'),
           nickname: memberWS.user.get('nickname'),
           image: memberWS.user.get('image'),
-          isHost: false
+          isHost: memberWS === myParty.getHost()
         }
       }
     )
-    body[0].isHost = true
 
     ws.emit('sendPartyMessage', operation, body)
   })
