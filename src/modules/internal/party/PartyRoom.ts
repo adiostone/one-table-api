@@ -1,6 +1,7 @@
 import { PartyWS } from '@/modules/internal/party/partyServer'
 import { nanoid } from 'nanoid'
 import Restaurant from '@/models/Restaurant'
+import User from '@/models/User'
 
 export interface Chat {
   id: string
@@ -47,6 +48,10 @@ export default class PartyRoom {
 
   public getHost(): PartyWS {
     return this.members[0]
+  }
+
+  public isEmpty(): boolean {
+    return this.members.length === 0
   }
 
   public joinParty(ws: PartyWS): void {
