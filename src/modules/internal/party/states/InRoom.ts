@@ -16,6 +16,9 @@ interface NotifyOutMemberBody {
   user: {
     id: string
   }
+  newHost?: {
+    id: string
+  }
 }
 
 type NotifyNewChatBody = Chat
@@ -45,7 +48,11 @@ export default class InRoom extends State {
     }
   }
 
-  public notifyLeaveParty(partyRoom: PartyRoom, outMember: User): void {
+  public notifyLeaveParty(
+    partyRoom: PartyRoom,
+    outMember: User,
+    isHost: boolean
+  ): void {
     // only notify to members in same party
     if (this._ws.roomID === partyRoom.id) {
       const operation = 'notifyOutMember'
@@ -53,6 +60,13 @@ export default class InRoom extends State {
         size: partyRoom.members.length,
         user: {
           id: outMember.get('id')
+        }
+      }
+
+      // check if out member is host
+      if (isHost) {
+        body.newHost = {
+          id: partyRoom.getHost().user.get('id')
         }
       }
 
