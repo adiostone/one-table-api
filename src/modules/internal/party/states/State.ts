@@ -21,5 +21,10 @@ export default abstract class State {
 
   public abstract notifyDeleteParty(partyRoom: PartyRoom): void
 
+  public abstract notifyKickedOutMember(
+    partyRoom: PartyRoom,
+    outMember: User
+  ): void
+
   public abstract notifyNewChat(partyRoom: PartyRoom): void
 }

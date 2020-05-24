@@ -21,6 +21,13 @@ interface NotifyOutMemberBody {
   }
 }
 
+interface NotifyKickedOutMemberBody {
+  size: number
+  user: {
+    id: string
+  }
+}
+
 type NotifyNewChatBody = Chat
 
 export default class InRoom extends State {
@@ -76,6 +83,21 @@ export default class InRoom extends State {
 
   public notifyDeleteParty(partyRoom: PartyRoom): void {
     // do nothing
+  }
+
+  public notifyKickedOutMember(partyRoom: PartyRoom, outMember: User): void {
+    // only notify to members in same party
+    if (this._ws.roomID === partyRoom.id) {
+      const operation = 'notifyKickedOutMember'
+      const body: NotifyKickedOutMemberBody = {
+        size: partyRoom.size,
+        user: {
+          id: outMember.get('id')
+        }
+      }
+
+      this._ws.emit('sendPartyMessage', operation, body)
+    }
   }
 
   public notifyNewChat(partyRoom: PartyRoom): void {

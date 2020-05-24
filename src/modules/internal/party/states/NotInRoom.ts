@@ -76,6 +76,16 @@ export default class NotInRoom extends State {
     this._ws.emit('sendPartyMessage', operation, body)
   }
 
+  public notifyKickedOutMember(partyRoom: PartyRoom, outMember: User): void {
+    const operation = 'notifyChangedPartySize'
+    const body: NotifyChangedPartySizeBody = {
+      id: partyRoom.id,
+      size: partyRoom.size
+    }
+
+    this._ws.emit('sendPartyMessage', operation, body)
+  }
+
   public notifyNewChat(partyRoom: PartyRoom): void {
     // do nothing
   }
