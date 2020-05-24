@@ -1,7 +1,6 @@
 import { PartyWS } from '@/modules/internal/party/partyServer'
 import { nanoid } from 'nanoid'
 import Restaurant from '@/models/Restaurant'
-import User from '@/models/User'
 
 export interface Chat {
   id: string
@@ -46,12 +45,16 @@ export default class PartyRoom {
     hostWS.roomID = this.id
   }
 
-  public getHost(): PartyWS {
+  public get size(): number {
+    return this.members.length
+  }
+
+  public get host(): PartyWS {
     return this.members[0]
   }
 
-  public isEmpty(): boolean {
-    return this.members.length === 0
+  public getMember(userID: string): PartyWS {
+    return this.members.find(member => member.user.get('id') === userID)
   }
 
   public joinParty(ws: PartyWS): void {
@@ -59,7 +62,7 @@ export default class PartyRoom {
       throw Error('this user is already joined to another party')
     }
 
-    if (this.capacity <= this.members.length) {
+    if (this.capacity <= this.size) {
       throw Error('this party room is already full')
     }
 

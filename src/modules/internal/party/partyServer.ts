@@ -198,7 +198,7 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
           title: partyRoom.title,
           address: partyRoom.address,
           capacity: partyRoom.capacity,
-          size: partyRoom.members.length
+          size: partyRoom.size
         }
       }
     )
@@ -279,7 +279,7 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
       title: myParty.title,
       address: myParty.address,
       capacity: myParty.capacity,
-      size: myParty.members.length
+      size: myParty.size
     }
 
     ws.emit('sendPartyMessage', operation, body)
@@ -295,7 +295,7 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
           id: memberWS.user.get('id'),
           nickname: memberWS.user.get('nickname'),
           image: memberWS.user.get('image'),
-          isHost: memberWS === myParty.getHost()
+          isHost: memberWS === myParty.host
         }
       }
     )
@@ -305,7 +305,7 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
 
   ws.on('leaveParty', () => {
     const myParty = partyRoomList[ws.roomID]
-    const isHost = myParty.getHost() === ws
+    const isHost = ws === myParty.host
     const replyOperation = 'replyLeaveParty'
     const replyBody: ReplyLeavePartyBody = {
       isSuccess: true
@@ -316,7 +316,7 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
     ws.emit('sendPartyMessage', replyOperation, replyBody)
 
     // if there are no longer members, delete party
-    if (myParty.isEmpty()) {
+    if (myParty.size === 0) {
       delete partyRoomList[ws.roomID]
       partyServer.clients.forEach((partyWS: PartyWS) => {
         partyWS.state.notifyDeleteParty(myParty)

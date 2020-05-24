@@ -36,7 +36,7 @@ export default class InRoom extends State {
     ) {
       const operation = 'notifyNewMember'
       const body: NotifyNewMemberBody = {
-        size: partyRoom.members.length,
+        size: partyRoom.size,
         user: {
           id: newMember.get('id'),
           nickname: newMember.get('nickname'),
@@ -57,7 +57,7 @@ export default class InRoom extends State {
     if (this._ws.roomID === partyRoom.id) {
       const operation = 'notifyOutMember'
       const body: NotifyOutMemberBody = {
-        size: partyRoom.members.length,
+        size: partyRoom.size,
         user: {
           id: outMember.get('id')
         }
@@ -66,7 +66,7 @@ export default class InRoom extends State {
       // check if out member is host
       if (isHost) {
         body.newHost = {
-          id: partyRoom.getHost().user.get('id')
+          id: partyRoom.host.user.get('id')
         }
       }
 

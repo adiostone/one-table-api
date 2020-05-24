@@ -37,7 +37,7 @@ export default class NotInRoom extends State {
       title: newPartyRoom.title,
       address: newPartyRoom.address,
       capacity: newPartyRoom.capacity,
-      size: newPartyRoom.members.length
+      size: newPartyRoom.size
     }
 
     this._ws.emit('sendPartyMessage', operation, body)
@@ -47,7 +47,7 @@ export default class NotInRoom extends State {
     const operation = 'notifyChangedPartySize'
     const body: NotifyChangedPartySizeBody = {
       id: partyRoom.id,
-      size: partyRoom.members.length
+      size: partyRoom.size
     }
 
     this._ws.emit('sendPartyMessage', operation, body)
@@ -61,7 +61,7 @@ export default class NotInRoom extends State {
     const operation = 'notifyChangedPartySize'
     const body: NotifyChangedPartySizeBody = {
       id: partyRoom.id,
-      size: partyRoom.members.length
+      size: partyRoom.size
     }
 
     this._ws.emit('sendPartyMessage', operation, body)
