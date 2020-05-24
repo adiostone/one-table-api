@@ -86,6 +86,14 @@ interface ReplyLeavePartyBody {
   isSuccess: boolean
 }
 
+interface KickOutMemberBody {
+  id: string
+}
+
+interface ReplyKickOutMemberBody {
+  isSuccess: boolean
+}
+
 interface SendChatBody {
   chat: string
 }
@@ -326,6 +334,29 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
         partyWS.state.notifyLeaveParty(myParty, ws.user, isHost)
       })
     }
+  })
+
+  ws.on('kickOutMember', (body: KickOutMemberBody) => {
+    const myParty = partyRoomList[ws.roomID]
+    const isHost = ws === myParty.host
+    const replyOperation = 'replyKickOutMember'
+    const replyBody: ReplyKickOutMemberBody = {
+      isSuccess: true
+    }
+
+    // if not host, cannot kick out other members.
+    if (isHost === false) {
+      return
+    }
+
+    const memberToKick = myParty.getMember(body.id)
+    myParty.leaveParty(memberToKick)
+    transitionTo(memberToKick, new NotInRoom())
+    ws.emit('sendPartyMessage', replyOperation, replyBody)
+
+    partyServer.clients.forEach((partyWS: PartyWS) => {
+      partyWS.state.notifyKickedOutMember(myParty, memberToKick.user)
+    })
   })
 
   ws.on('getMyPartyChats', () => {
