@@ -8,13 +8,19 @@ export interface Chat {
   chat: string
 }
 
+interface Member {
+  ws: PartyWS
+  isHost: boolean
+  isReady: boolean
+}
+
 export default class PartyRoom {
   public id: string
   public restaurant: Restaurant
   public title: string
   public address: string
   public capacity: number
-  public members: PartyWS[]
+  public members: Member[]
   public chats: Chat[]
 
   public async createParty(
@@ -38,7 +44,7 @@ export default class PartyRoom {
       title,
       address,
       capacity,
-      [hostWS],
+      [{ ws: hostWS, isHost: true, isReady: false }],
       []
     ]
 
@@ -49,12 +55,12 @@ export default class PartyRoom {
     return this.members.length
   }
 
-  public get host(): PartyWS {
+  public get host(): Member {
     return this.members[0]
   }
 
-  public getMember(userID: string): PartyWS {
-    return this.members.find(member => member.user.get('id') === userID)
+  public getMember(userID: string): Member {
+    return this.members.find(member => member.ws.user.get('id') === userID)
   }
 
   public joinParty(ws: PartyWS): void {
@@ -66,20 +72,28 @@ export default class PartyRoom {
       throw Error('this party room is already full')
     }
 
-    this.members.push(ws)
+    this.members.push({
+      ws: ws,
+      isHost: false,
+      isReady: false
+    })
     ws.roomID = this.id
   }
 
   public leaveParty(ws: PartyWS): void {
-    const wsIndex = this.members.indexOf(ws)
+    const memberIndex = this.members.findIndex(member => member.ws === ws)
 
-    if (wsIndex >= 0) {
-      this.members.splice(wsIndex, 1)
+    if (memberIndex >= 0) {
+      this.members.splice(memberIndex, 1)
       ws.roomID = null
     }
   }
 
   public sendChat(ws: PartyWS, chat: string): void {
+    if (this.getMember(ws.user.get('id')) === undefined) {
+      throw Error('this user is not member of the party room')
+    }
+
     this.chats.push({
       id: ws.user.get('id'),
       nickname: ws.user.get('nickname'),
