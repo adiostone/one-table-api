@@ -98,6 +98,10 @@ interface SendChatBody {
   chat: string
 }
 
+interface ReplySendChatBody {
+  isSuccess: boolean
+}
+
 type ReplyGetMyPartyChats = Chat[]
 
 const partyServer = new WebSocket.Server({ noServer: true })
@@ -370,10 +374,21 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
 
   ws.on('sendChat', (body: SendChatBody) => {
     const partyRoom = partyRoomList[ws.roomID]
-    partyRoom.sendChat(ws, body.chat)
+    const replyOperation = 'replySendChat'
+    const replyBody: ReplySendChatBody = {
+      isSuccess: true
+    }
 
-    partyRoom.members.forEach(partyWS => {
-      partyWS.state.notifyNewChat(partyRoom)
+    try {
+      partyRoom.sendChat(ws, body.chat)
+    } catch (e) {
+      replyBody.isSuccess = false
+      ws.emit('sendPartyMessage', replyOperation, replyBody)
+      return
+    }
+
+    partyRoom.members.forEach(member => {
+      member.ws.state.notifyNewChat(partyRoom)
     })
   })
 })
