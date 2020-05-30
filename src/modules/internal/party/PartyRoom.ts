@@ -1,10 +1,12 @@
 import { PartyWS } from '@/modules/internal/party/partyServer'
 import { nanoid } from 'nanoid'
 import Restaurant from '@/models/Restaurant'
+import Menu from '@/models/Menu'
 
 export interface MenuInCart {
-  id: string
+  id: number
   quantity: number
+  pricePerCapita: number
 }
 
 export interface Member {
@@ -123,5 +125,63 @@ export default class PartyRoom {
       nickname: ws.user.get('nickname'),
       chat: chat
     })
+  }
+
+  public async addToCart(
+    ws: PartyWS,
+    id: number,
+    quantity: number,
+    isShared: boolean
+  ): Promise<MenuInCart> {
+    const member = this.getMember(ws.user.get('id'))
+    if (member === undefined) {
+      throw Error('user is not member of this party room')
+    }
+    if (member.isReady) {
+      throw Error('cannot add menu when ready state')
+    }
+
+    let cart: MenuInCart[]
+    if (isShared) {
+      if (!member.isHost) {
+        throw Error('only host can add shared menu to cart')
+      }
+
+      cart = this.sharedCart
+    } else {
+      cart = member.cart
+    }
+
+    // if already exist this menu in the cart
+    if (cart.find(menu => menu.id === id) !== undefined) {
+      throw Error('this menu is already exist in the cart')
+    }
+
+    const menu = await Menu.findByPk(id, {
+      include: [
+        {
+          association: Menu.associations.prices,
+          attributes: ['price']
+        }
+      ]
+    })
+
+    const totalPrice = quantity * (menu.toJSON() as Menu).prices[0].price
+    const menuInCart: MenuInCart = {
+      id: id,
+      quantity: quantity,
+      pricePerCapita: isShared ? Math.floor(totalPrice / this.size) : totalPrice
+    }
+
+    cart.push(menuInCart)
+
+    // if shared menu, make all members to not ready state
+    if (isShared) {
+      for (const member of this.members) {
+        member.isReady = false
+      }
+    }
+
+    return menuInCart
   }
 }
