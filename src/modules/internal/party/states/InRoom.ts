@@ -1,6 +1,5 @@
 import State from '@/modules/internal/party/states/State'
-import PartyRoom, { Chat } from '@/modules/internal/party/PartyRoom'
-import User from '@/models/User'
+import PartyRoom, { Chat, Member } from '@/modules/internal/party/PartyRoom'
 
 interface NotifyNewMemberBody {
   size: number
@@ -8,6 +7,8 @@ interface NotifyNewMemberBody {
     id: string
     nickname: string
     image: string
+    isHost: boolean
+    isReady: boolean
   }
 }
 
@@ -35,19 +36,18 @@ export default class InRoom extends State {
     // do nothing
   }
 
-  public notifyJoinParty(partyRoom: PartyRoom, newMember: User): void {
+  public notifyJoinParty(partyRoom: PartyRoom, newMember: Member): void {
     // only notify to members in same party except new member
-    if (
-      this._ws.roomID === partyRoom.id &&
-      this._ws.user.get('id') !== newMember.get('id')
-    ) {
+    if (this._ws.roomID === partyRoom.id && this._ws !== newMember.ws) {
       const operation = 'notifyNewMember'
       const body: NotifyNewMemberBody = {
         size: partyRoom.size,
         user: {
-          id: newMember.get('id'),
-          nickname: newMember.get('nickname'),
-          image: newMember.get('image')
+          id: newMember.ws.user.get('id'),
+          nickname: newMember.ws.user.get('nickname'),
+          image: newMember.ws.user.get('image'),
+          isHost: newMember.isHost,
+          isReady: newMember.isReady
         }
       }
 
@@ -55,25 +55,22 @@ export default class InRoom extends State {
     }
   }
 
-  public notifyLeaveParty(
-    partyRoom: PartyRoom,
-    outMember: User,
-    isHost: boolean
-  ): void {
+  public notifyLeaveParty(partyRoom: PartyRoom, outMember: Member): void {
     // only notify to members in same party
     if (this._ws.roomID === partyRoom.id) {
       const operation = 'notifyOutMember'
       const body: NotifyOutMemberBody = {
         size: partyRoom.size,
         user: {
-          id: outMember.get('id')
+          id: outMember.ws.user.get('id')
         }
       }
 
-      // check if out member is host
-      if (isHost) {
+      // check if out member is old host,
+      // additionally notice the new host
+      if (outMember.isHost) {
         body.newHost = {
-          id: partyRoom.host.user.get('id')
+          id: partyRoom.host.ws.user.get('id')
         }
       }
 
@@ -85,14 +82,14 @@ export default class InRoom extends State {
     // do nothing
   }
 
-  public notifyKickedOutMember(partyRoom: PartyRoom, outMember: User): void {
+  public notifyKickedOutMember(partyRoom: PartyRoom, outMember: Member): void {
     // only notify to members in same party
     if (this._ws.roomID === partyRoom.id) {
       const operation = 'notifyKickedOutMember'
       const body: NotifyKickedOutMemberBody = {
         size: partyRoom.size,
         user: {
-          id: outMember.get('id')
+          id: outMember.ws.user.get('id')
         }
       }
 

@@ -1,6 +1,5 @@
 import State from '@/modules/internal/party/states/State'
-import PartyRoom from '@/modules/internal/party/PartyRoom'
-import User from '@/models/User'
+import PartyRoom, { Member } from '@/modules/internal/party/PartyRoom'
 
 interface NotifyNewPartyBody {
   id: string
@@ -43,7 +42,7 @@ export default class NotInRoom extends State {
     this._ws.emit('sendPartyMessage', operation, body)
   }
 
-  public notifyJoinParty(partyRoom: PartyRoom, newMember: User): void {
+  public notifyJoinParty(partyRoom: PartyRoom, newMember: Member): void {
     const operation = 'notifyChangedPartySize'
     const body: NotifyChangedPartySizeBody = {
       id: partyRoom.id,
@@ -53,11 +52,7 @@ export default class NotInRoom extends State {
     this._ws.emit('sendPartyMessage', operation, body)
   }
 
-  public notifyLeaveParty(
-    partyRoom: PartyRoom,
-    outMember: User,
-    isHost: boolean
-  ): void {
+  public notifyLeaveParty(partyRoom: PartyRoom, outMember: Member): void {
     const operation = 'notifyChangedPartySize'
     const body: NotifyChangedPartySizeBody = {
       id: partyRoom.id,
@@ -76,7 +71,7 @@ export default class NotInRoom extends State {
     this._ws.emit('sendPartyMessage', operation, body)
   }
 
-  public notifyKickedOutMember(partyRoom: PartyRoom, outMember: User): void {
+  public notifyKickedOutMember(partyRoom: PartyRoom, outMember: Member): void {
     const operation = 'notifyChangedPartySize'
     const body: NotifyChangedPartySizeBody = {
       id: partyRoom.id,
