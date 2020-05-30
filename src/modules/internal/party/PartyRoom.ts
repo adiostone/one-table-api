@@ -8,7 +8,7 @@ export interface Chat {
   chat: string
 }
 
-interface Member {
+export interface Member {
   ws: PartyWS
   isHost: boolean
   isReady: boolean
@@ -63,7 +63,7 @@ export default class PartyRoom {
     return this.members.find(member => member.ws.user.get('id') === userID)
   }
 
-  public joinParty(ws: PartyWS): void {
+  public joinParty(ws: PartyWS): Member {
     if (ws.roomID !== null) {
       throw Error('this user is already joined to another party')
     }
@@ -72,35 +72,40 @@ export default class PartyRoom {
       throw Error('this party room is already full')
     }
 
-    this.members.push({
+    const newMember = {
       ws: ws,
       isHost: false,
       isReady: false
-    })
+    }
+    this.members.push(newMember)
     ws.roomID = this.id
+
+    return newMember
   }
 
-  public leaveParty(ws: PartyWS): void {
+  public leaveParty(ws: PartyWS): Member {
     const memberIndex = this.members.findIndex(member => member.ws === ws)
-
-    if (memberIndex >= 0) {
-      const isHost = this.members[memberIndex].isHost
-
-      this.members.splice(memberIndex, 1)
-      ws.roomID = null
-
-      // if out member is host, pick new host randomly
-      if (isHost) {
-        const newHost = this.members[Math.floor(Math.random() * this.size)]
-        newHost.isHost = true
-        newHost.isReady = false
-      }
+    if (memberIndex === -1) {
+      throw Error('user is not member of this party room')
     }
+
+    const outMember = this.members[memberIndex]
+    this.members.splice(memberIndex, 1)
+    ws.roomID = null
+
+    // if out member is host, pick new host randomly
+    if (outMember.isHost) {
+      const newHost = this.members[Math.floor(Math.random() * this.size)]
+      newHost.isHost = true
+      newHost.isReady = false
+    }
+
+    return outMember
   }
 
   public sendChat(ws: PartyWS, chat: string): void {
     if (this.getMember(ws.user.get('id')) === undefined) {
-      throw Error('this user is not member of the party room')
+      throw Error('user is not member of this party room')
     }
 
     this.chats.push({
