@@ -23,6 +23,13 @@ interface NotifyDeletePartyBody {
   id: string
 }
 
+interface NotifyKickedOutMemberBody {
+  size: number
+  user: {
+    id: string
+  }
+}
+
 export default class NotInRoom extends State {
   public notifyNewParty(newPartyRoom: PartyRoom): void {
     const operation = 'notifyNewParty'
@@ -72,10 +79,23 @@ export default class NotInRoom extends State {
   }
 
   public notifyKickedOutMember(partyRoom: PartyRoom, outMember: Member): void {
-    const operation = 'notifyChangedPartySize'
-    const body: NotifyChangedPartySizeBody = {
-      id: partyRoom.id,
-      size: partyRoom.size
+    let operation, body
+
+    // if the kicked out member
+    if (this._ws === outMember.ws) {
+      operation = 'notifyKickedOutMember'
+      body = {
+        size: partyRoom.size,
+        user: {
+          id: outMember.ws.user.get('id')
+        }
+      } as NotifyKickedOutMemberBody
+    } else {
+      operation = 'notifyChangedPartySize'
+      body = {
+        id: partyRoom.id,
+        size: partyRoom.size
+      } as NotifyChangedPartySizeBody
     }
 
     this._ws.emit('sendPartyMessage', operation, body)
