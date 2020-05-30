@@ -80,6 +80,7 @@ type ReplyGetMyPartyMemberListBody = {
   nickname: string
   image: string
   isHost: boolean
+  isReady: boolean
 }[]
 
 interface ReplyLeavePartyBody {
@@ -301,16 +302,15 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
     const myParty = partyRoomList[ws.roomID]
 
     const operation = 'replyGetMyPartyMemberList'
-    const body: ReplyGetMyPartyMemberListBody = myParty.members.map(
-      memberWS => {
-        return {
-          id: memberWS.user.get('id'),
-          nickname: memberWS.user.get('nickname'),
-          image: memberWS.user.get('image'),
-          isHost: memberWS === myParty.host
-        }
+    const body: ReplyGetMyPartyMemberListBody = myParty.members.map(member => {
+      return {
+        id: member.ws.user.get('id'),
+        nickname: member.ws.user.get('nickname'),
+        image: member.ws.user.get('image'),
+        isHost: member.isHost,
+        isReady: member.isReady
       }
-    )
+    })
 
     ws.emit('sendPartyMessage', operation, body)
   })
