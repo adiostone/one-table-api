@@ -2,16 +2,22 @@ import { PartyWS } from '@/modules/internal/party/partyServer'
 import { nanoid } from 'nanoid'
 import Restaurant from '@/models/Restaurant'
 
-export interface Chat {
+export interface MenuInCart {
   id: string
-  nickname: string
-  chat: string
+  quantity: number
 }
 
 export interface Member {
   ws: PartyWS
   isHost: boolean
   isReady: boolean
+  cart: MenuInCart[]
+}
+
+export interface Chat {
+  id: string
+  nickname: string
+  chat: string
 }
 
 export default class PartyRoom {
@@ -22,6 +28,7 @@ export default class PartyRoom {
   public capacity: number
   public members: Member[]
   public chats: Chat[]
+  public sharedCart: MenuInCart[]
 
   public async createParty(
     restaurantID: number,
@@ -37,14 +44,16 @@ export default class PartyRoom {
       this.address,
       this.capacity,
       this.members,
-      this.chats
+      this.chats,
+      this.sharedCart
     ] = [
       nanoid(12),
       await Restaurant.findByPk(restaurantID),
       title,
       address,
       capacity,
-      [{ ws: hostWS, isHost: true, isReady: false }],
+      [{ ws: hostWS, isHost: true, isReady: false, cart: [] }],
+      [],
       []
     ]
 
@@ -72,10 +81,11 @@ export default class PartyRoom {
       throw Error('this party room is already full')
     }
 
-    const newMember = {
+    const newMember: Member = {
       ws: ws,
       isHost: false,
-      isReady: false
+      isReady: false,
+      cart: []
     }
     this.members.push(newMember)
     ws.roomID = this.id
