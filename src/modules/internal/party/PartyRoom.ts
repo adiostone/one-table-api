@@ -56,10 +56,10 @@ export default class PartyRoom {
   }
 
   public get host(): Member {
-    return this.members[0]
+    return this.members.find(member => member.isHost)
   }
 
-  public getMember(userID: string): Member {
+  public getMember(userID: string): Member | undefined {
     return this.members.find(member => member.ws.user.get('id') === userID)
   }
 
@@ -84,8 +84,17 @@ export default class PartyRoom {
     const memberIndex = this.members.findIndex(member => member.ws === ws)
 
     if (memberIndex >= 0) {
+      const isHost = this.members[memberIndex].isHost
+
       this.members.splice(memberIndex, 1)
       ws.roomID = null
+
+      // if out member is host, pick new host randomly
+      if (isHost) {
+        const newHost = this.members[Math.floor(Math.random() * this.size)]
+        newHost.isHost = true
+        newHost.isReady = false
+      }
     }
   }
 
