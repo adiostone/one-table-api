@@ -306,4 +306,22 @@ export default class PartyRoom {
 
     return member
   }
+
+  public async refreshSharedCart(): Promise<void> {
+    for (const menuInCart of this.sharedCart) {
+      const menu = await Menu.findByPk(menuInCart.id, {
+        include: [
+          {
+            association: Menu.associations.prices,
+            attributes: ['price']
+          }
+        ]
+      })
+
+      const totalPrice =
+        menuInCart.quantity * (menu.toJSON() as Menu).prices[0].price
+
+      menuInCart.pricePerCapita = Math.floor(totalPrice / this.size)
+    }
+  }
 }

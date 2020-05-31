@@ -344,6 +344,12 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
     partyServer.clients.forEach((partyWS: PartyWS) => {
       partyWS.state.notifyJoinParty(partyRoom, newMember)
     })
+
+    partyRoom.refreshSharedCart().then(() => {
+      partyRoom.members.forEach(member => {
+        member.ws.state.notifyRefreshSharedCart(partyRoom, newMember)
+      })
+    })
   })
 
   /**
@@ -411,6 +417,12 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
       partyServer.clients.forEach((partyWS: PartyWS) => {
         partyWS.state.notifyLeaveParty(myParty, outMember)
       })
+
+      myParty.refreshSharedCart().then(() => {
+        myParty.members.forEach(member => {
+          member.ws.state.notifyRefreshSharedCart(myParty)
+        })
+      })
     }
 
     transitionTo(ws, new NotInRoom())
@@ -446,6 +458,12 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
 
     partyServer.clients.forEach((partyWS: PartyWS) => {
       partyWS.state.notifyKickedOutMember(myParty, memberToKick)
+    })
+
+    myParty.refreshSharedCart().then(() => {
+      myParty.members.forEach(member => {
+        member.ws.state.notifyRefreshSharedCart(myParty)
+      })
     })
   })
 
