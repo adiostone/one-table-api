@@ -6,6 +6,7 @@ import Menu from '@/models/Menu'
 export interface MenuInCart {
   id: number
   quantity: number
+  unitPrice: number
   pricePerCapita: number
   name: string
   image: string
@@ -71,6 +72,8 @@ export default class PartyRoom {
   public get host(): Member {
     return this.members.find(member => member.isHost)
   }
+
+  // public get totalPrice(): number {}
 
   public getMember(userID: string): Member | undefined {
     return this.members.find(member => member.ws.user.get('id') === userID)
@@ -170,10 +173,12 @@ export default class PartyRoom {
       })
     ).toJSON() as Menu
 
-    const totalPrice = quantity * menu.prices[0].price
+    const unitPrice = menu.prices[0].price
+    const totalPrice = unitPrice * quantity
     const menuInCart: MenuInCart = {
       id: id,
       quantity: quantity,
+      unitPrice: unitPrice,
       pricePerCapita: isShared
         ? Math.floor(totalPrice / this.size)
         : totalPrice,
@@ -193,12 +198,12 @@ export default class PartyRoom {
     return menuInCart
   }
 
-  public async updateMenuInCart(
+  public updateMenuInCart(
     ws: PartyWS,
     id: number,
     quantity: number,
     isShared: boolean
-  ): Promise<MenuInCart> {
+  ): MenuInCart {
     const member = this.getMember(ws.user.get('id'))
     if (member === undefined) {
       throw Error('user is not member of this party room')
@@ -224,18 +229,8 @@ export default class PartyRoom {
       throw Error('this menu is not exist in the cart')
     }
 
-    const menu = await Menu.findByPk(id, {
-      include: [
-        {
-          association: Menu.associations.prices,
-          attributes: ['price']
-        }
-      ]
-    })
-
-    const totalPrice = quantity * (menu.toJSON() as Menu).prices[0].price
-
     menuInCart.quantity = quantity
+    const totalPrice = menuInCart.unitPrice * quantity
     menuInCart.pricePerCapita = isShared
       ? Math.floor(totalPrice / this.size)
       : totalPrice

@@ -542,30 +542,36 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
       updatedMenu: null
     }
 
-    partyRoom
-      .updateMenuInCart(ws, body.id, body.quantity, body.isShared)
-      .then(menuInCart => {
-        replyBody.updatedMenu = {
-          id: menuInCart.id,
-          quantity: menuInCart.quantity,
-          isShared: body.isShared,
-          pricePerCapita: menuInCart.pricePerCapita,
-          name: menuInCart.name,
-          image: menuInCart.image
-        }
-        ws.emit('sendPartyMessage', replyOperation, replyBody)
+    let updatedMenuInCart: MenuInCart
+    try {
+      updatedMenuInCart = partyRoom.updateMenuInCart(
+        ws,
+        body.id,
+        body.quantity,
+        body.isShared
+      )
+    } catch (e) {
+      replyBody.isSuccess = false
+      ws.emit('sendPartyMessage', replyOperation, replyBody)
+      return
+    }
 
-        if (body.isShared) {
-          partyRoom.members.forEach(member => {
-            member.ws.state.notifyUpdateSharedMenu(partyRoom, menuInCart)
-            member.ws.state.notifyAllMemberNotReady(partyRoom)
-          })
-        }
+    replyBody.updatedMenu = {
+      id: updatedMenuInCart.id,
+      quantity: updatedMenuInCart.quantity,
+      isShared: body.isShared,
+      pricePerCapita: updatedMenuInCart.pricePerCapita,
+      name: updatedMenuInCart.name,
+      image: updatedMenuInCart.image
+    }
+    ws.emit('sendPartyMessage', replyOperation, replyBody)
+
+    if (body.isShared) {
+      partyRoom.members.forEach(member => {
+        member.ws.state.notifyUpdateSharedMenu(partyRoom, updatedMenuInCart)
+        member.ws.state.notifyAllMemberNotReady(partyRoom)
       })
-      .catch(() => {
-        replyBody.isSuccess = false
-        ws.emit('sendPartyMessage', replyOperation, replyBody)
-      })
+    }
   })
 
   ws.on('deleteMenuInCart', (body: DeleteMenuInCartBody) => {
