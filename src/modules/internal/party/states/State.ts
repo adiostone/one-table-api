@@ -46,5 +46,8 @@ export default abstract class State {
 
   public abstract notifyAllMemberNotReady(partyRoom: PartyRoom): void
 
-  public abstract notifyMemberReady(partyRoom: PartyRoom, member: Member): void
+  public abstract notifyMemberSetReady(
+    partyRoom: PartyRoom,
+    member: Member
+  ): void
 }

@@ -58,8 +58,9 @@ interface NotifyDeleteSharedMenuBody {
   isShared: boolean
 }
 
-interface NotifyMemberReadyBody {
+interface NotifyMemberSetReadyBody {
   id: string
+  isReady: boolean
 }
 
 export default class InRoom extends State {
@@ -196,11 +197,12 @@ export default class InRoom extends State {
     }
   }
 
-  public notifyMemberReady(partyRoom: PartyRoom, member: Member): void {
-    if (this._ws.roomID === partyRoom.id) {
+  public notifyMemberSetReady(partyRoom: PartyRoom, member: Member): void {
+    if (this._ws.roomID === partyRoom.id && this._ws !== member.ws) {
       const operation = 'notifyMemberReady'
-      const body: NotifyMemberReadyBody = {
-        id: member.ws.user.get('id')
+      const body: NotifyMemberSetReadyBody = {
+        id: member.ws.user.get('id'),
+        isReady: member.isReady
       }
 
       this._ws.emit('sendPartyMessage', operation, body)
