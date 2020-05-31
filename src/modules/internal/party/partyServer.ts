@@ -3,7 +3,11 @@ import User from '@/models/User'
 import { HttpRequest } from '@/http/HttpHandler'
 import { setInterval } from 'timers'
 import ms from 'ms'
-import PartyRoom, { Chat, Member } from '@/modules/internal/party/PartyRoom'
+import PartyRoom, {
+  Chat,
+  Member,
+  MenuInCart
+} from '@/modules/internal/party/PartyRoom'
 import State from '@/modules/internal/party/states/State'
 import NotInRoom from '@/modules/internal/party/states/NotInRoom'
 import InRoom from '@/modules/internal/party/states/InRoom'
@@ -134,6 +138,19 @@ interface ReplyUpdateMenuInCartBody {
     quantity: number
     isShared: boolean
     pricePerCaptia: number
+  }
+}
+
+interface DeleteMenuInCartBody {
+  id: number
+  isShared: boolean
+}
+
+interface ReplyDeleteMenuInCartBody {
+  isSuccess: boolean
+  deletedMenu: null | {
+    id: number
+    isShared: boolean
   }
 }
 
@@ -504,6 +521,36 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
         replyBody.isSuccess = false
         ws.emit('sendPartyMessage', replyOperation, replyBody)
       })
+  })
+
+  ws.on('deleteMenuInCart', (body: DeleteMenuInCartBody) => {
+    const partyRoom = partyRoomList[ws.roomID]
+    const replyOperation = 'replyDeleteMenuInCart'
+    const replyBody: ReplyDeleteMenuInCartBody = {
+      isSuccess: true,
+      deletedMenu: null
+    }
+
+    let deletedMenuInCart: MenuInCart
+    try {
+      deletedMenuInCart = partyRoom.deleteMenuInCart(ws, body.id, body.isShared)
+    } catch (e) {
+      replyBody.isSuccess = false
+      ws.emit('sendPartyMessage', replyOperation, replyBody)
+    }
+
+    replyBody.deletedMenu = {
+      id: deletedMenuInCart.id,
+      isShared: body.isShared
+    }
+    ws.emit('sendPartyMessage', replyOperation, replyBody)
+
+    if (body.isShared) {
+      partyRoom.members.forEach(member => {
+        member.ws.state.notifyDeleteSharedMenu(partyRoom, deletedMenuInCart)
+        member.ws.state.notifyAllMemberNotReady(partyRoom)
+      })
+    }
   })
 })
 
