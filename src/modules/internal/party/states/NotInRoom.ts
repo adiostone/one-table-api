@@ -129,4 +129,8 @@ export default class NotInRoom extends State {
   public notifyAllMemberNotReady(partyRoom: PartyRoom): void {
     // do nothing
   }
+
+  public notifyMemberReady(partyRoom: PartyRoom, member: Member): void {
+    // do nothing
+  }
 }
