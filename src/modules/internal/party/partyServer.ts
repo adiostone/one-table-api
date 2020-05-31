@@ -673,7 +673,7 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
     ws.emit('sendPartyMessage', replyOperation, replyBody)
   })
 
-  ws.on('goToPurchase', () => {
+  ws.on('goToPayment', () => {
     const partyRoom = partyRoomList[ws.roomID]
 
     try {
