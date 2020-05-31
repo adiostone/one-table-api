@@ -158,6 +158,10 @@ interface ReplyDeleteMenuInCartBody {
   }
 }
 
+interface SetReadyBody {
+  isReady: boolean
+}
+
 interface ReplySetReadyBody {
   isSuccess: boolean
 }
@@ -566,15 +570,16 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
     }
   })
 
-  ws.on('setReady', () => {
+  ws.on('setReady', (body: SetReadyBody) => {
     const partyRoom = partyRoomList[ws.roomID]
     const replyOperation = 'replySetReady'
     const replyBody: ReplySetReadyBody = {
       isSuccess: true
     }
 
+    let readyMember: Member
     try {
-      partyRoom.setReady(ws)
+      readyMember = partyRoom.setReady(ws, body.isReady)
     } catch (e) {
       replyBody.isSuccess = false
       ws.emit('sendPartyMessage', replyOperation, replyBody)
@@ -582,6 +587,10 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
     }
 
     ws.emit('sendPartyMessage', replyOperation, replyBody)
+
+    partyRoom.members.forEach(member => {
+      member.ws.state.notifyMemberSetReady(partyRoom, readyMember)
+    })
   })
 })
 
