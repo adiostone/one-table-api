@@ -73,6 +73,7 @@ interface ReplyGetMyPartyMetadataBody {
     name: string
     icon: string
     minOrderPrice: number
+    totalPrice: number
   }
   title: string
   address: string
@@ -366,7 +367,8 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
         id: myParty.restaurant.get('id'),
         name: myParty.restaurant.get('name'),
         icon: myParty.restaurant.get('icon'),
-        minOrderPrice: myParty.restaurant.get('minOrderPrice')
+        minOrderPrice: myParty.restaurant.get('minOrderPrice'),
+        totalPrice: myParty.totalPrice
       },
       title: myParty.title,
       address: myParty.address,
@@ -425,6 +427,12 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
           member.ws.state.notifyRefreshSharedCart(myParty)
         })
       })
+
+      if (outMember.cart.length > 0) {
+        myParty.members.forEach(member => {
+          member.ws.state.notifyRefreshTotalPrice(myParty)
+        })
+      }
     }
 
     transitionTo(ws, new NotInRoom())
@@ -467,6 +475,12 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
         member.ws.state.notifyRefreshSharedCart(myParty)
       })
     })
+
+    if (memberToKick.cart.length > 0) {
+      myParty.members.forEach(member => {
+        member.ws.state.notifyRefreshTotalPrice(myParty)
+      })
+    }
   })
 
   ws.on('getMyPartyChats', () => {
@@ -527,6 +541,10 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
             member.ws.state.notifyAllMemberNotReady(partyRoom)
           })
         }
+
+        partyRoom.members.forEach(member => {
+          member.ws.state.notifyRefreshTotalPrice(partyRoom)
+        })
       })
       .catch(() => {
         replyBody.isSuccess = false
@@ -572,6 +590,10 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
         member.ws.state.notifyAllMemberNotReady(partyRoom)
       })
     }
+
+    partyRoom.members.forEach(member => {
+      member.ws.state.notifyRefreshTotalPrice(partyRoom)
+    })
   })
 
   ws.on('deleteMenuInCart', (body: DeleteMenuInCartBody) => {
@@ -603,6 +625,10 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
         member.ws.state.notifyAllMemberNotReady(partyRoom)
       })
     }
+
+    partyRoom.members.forEach(member => {
+      member.ws.state.notifyRefreshTotalPrice(partyRoom)
+    })
   })
 
   ws.on('setReady', (body: SetReadyBody) => {
