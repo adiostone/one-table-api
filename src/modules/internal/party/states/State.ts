@@ -33,4 +33,6 @@ export default abstract class State {
     partyRoom: PartyRoom,
     menuInCart: MenuInCart
   ): void
+
+  public abstract notifyAllMemberNotReady(partyRoom: PartyRoom): void
 }

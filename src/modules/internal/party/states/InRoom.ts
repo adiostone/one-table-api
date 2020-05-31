@@ -134,4 +134,12 @@ export default class InRoom extends State {
       this._ws.emit('sendPartyMessage', operation, body)
     }
   }
+
+  public notifyAllMemberNotReady(partyRoom: PartyRoom): void {
+    if (this._ws.roomID === partyRoom.id) {
+      const operation = 'notifyAllMemberNotReady'
+
+      this._ws.emit('sendPartyMessage', operation)
+    }
+  }
 }

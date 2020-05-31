@@ -114,4 +114,8 @@ export default class NotInRoom extends State {
   ): void {
     // do nothing
   }
+
+  public notifyAllMemberNotReady(partyRoom: PartyRoom): void {
+    // do nothing
+  }
 }
