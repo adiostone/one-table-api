@@ -292,4 +292,16 @@ export default class PartyRoom {
 
     return menuInCart
   }
+
+  public setReady(ws: PartyWS): void {
+    const member = this.getMember(ws.user.get('id'))
+    if (member === undefined) {
+      throw Error('user is not member of this party room')
+    }
+    if (member.isHost) {
+      throw Error('host cannot ready')
+    }
+
+    member.isReady = true
+  }
 }

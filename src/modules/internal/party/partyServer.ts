@@ -158,6 +158,10 @@ interface ReplyDeleteMenuInCartBody {
   }
 }
 
+interface ReplySetReadyBody {
+  isSuccess: boolean
+}
+
 const partyServer = new WebSocket.Server({ noServer: true })
 export const partyRoomList: { [key: string]: PartyRoom } = {}
 
@@ -560,6 +564,24 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
         member.ws.state.notifyAllMemberNotReady(partyRoom)
       })
     }
+  })
+
+  ws.on('setReady', () => {
+    const partyRoom = partyRoomList[ws.roomID]
+    const replyOperation = 'replySetReady'
+    const replyBody: ReplySetReadyBody = {
+      isSuccess: true
+    }
+
+    try {
+      partyRoom.setReady(ws)
+    } catch (e) {
+      replyBody.isSuccess = false
+      ws.emit('sendPartyMessage', replyOperation, replyBody)
+      return
+    }
+
+    ws.emit('sendPartyMessage', replyOperation, replyBody)
   })
 })
 
