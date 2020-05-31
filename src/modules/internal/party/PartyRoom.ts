@@ -7,6 +7,8 @@ export interface MenuInCart {
   id: number
   quantity: number
   pricePerCapita: number
+  name: string
+  image: string
 }
 
 export interface Member {
@@ -157,20 +159,26 @@ export default class PartyRoom {
       throw Error('this menu is already exist in the cart')
     }
 
-    const menu = await Menu.findByPk(id, {
-      include: [
-        {
-          association: Menu.associations.prices,
-          attributes: ['price']
-        }
-      ]
-    })
+    const menu = (
+      await Menu.findByPk(id, {
+        include: [
+          {
+            association: Menu.associations.prices,
+            attributes: ['price']
+          }
+        ]
+      })
+    ).toJSON() as Menu
 
-    const totalPrice = quantity * (menu.toJSON() as Menu).prices[0].price
+    const totalPrice = quantity * menu.prices[0].price
     const menuInCart: MenuInCart = {
       id: id,
       quantity: quantity,
-      pricePerCapita: isShared ? Math.floor(totalPrice / this.size) : totalPrice
+      pricePerCapita: isShared
+        ? Math.floor(totalPrice / this.size)
+        : totalPrice,
+      name: menu.name,
+      image: menu.image
     }
 
     cart.push(menuInCart)

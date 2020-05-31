@@ -40,6 +40,8 @@ interface NotifyNewSharedMenuBody {
   quantity: number
   isShared: boolean
   pricePerCapita: number
+  name: string
+  image: string
 }
 
 interface NotifyUpdateSharedMenuBody {
@@ -47,6 +49,8 @@ interface NotifyUpdateSharedMenuBody {
   quantity: number
   isShared: boolean
   pricePerCapita: number
+  name: string
+  image: string
 }
 
 interface NotifyDeleteSharedMenuBody {
@@ -140,7 +144,9 @@ export default class InRoom extends State {
         id: menuInCart.id,
         quantity: menuInCart.quantity,
         isShared: true,
-        pricePerCapita: menuInCart.pricePerCapita
+        pricePerCapita: menuInCart.pricePerCapita,
+        name: menuInCart.name,
+        image: menuInCart.image
       }
 
       this._ws.emit('sendPartyMessage', operation, body)
@@ -157,7 +163,9 @@ export default class InRoom extends State {
         id: menuInCart.id,
         quantity: menuInCart.quantity,
         isShared: true,
-        pricePerCapita: menuInCart.pricePerCapita
+        pricePerCapita: menuInCart.pricePerCapita,
+        name: menuInCart.name,
+        image: menuInCart.image
       }
 
       this._ws.emit('sendPartyMessage', operation, body)

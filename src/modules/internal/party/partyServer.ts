@@ -122,6 +122,8 @@ interface ReplyAddToCartBody {
     quantity: number
     isShared: boolean
     pricePerCapita: number
+    name: string
+    image: string
   }
 }
 
@@ -138,6 +140,8 @@ interface ReplyUpdateMenuInCartBody {
     quantity: number
     isShared: boolean
     pricePerCaptia: number
+    name: string
+    image: string
   }
 }
 
@@ -474,7 +478,9 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
           id: menuInCart.id,
           quantity: menuInCart.quantity,
           isShared: body.isShared,
-          pricePerCapita: menuInCart.pricePerCapita
+          pricePerCapita: menuInCart.pricePerCapita,
+          name: menuInCart.name,
+          image: menuInCart.image
         }
         ws.emit('sendPartyMessage', replyOperation, replyBody)
 
@@ -506,7 +512,9 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
           id: menuInCart.id,
           quantity: menuInCart.quantity,
           isShared: body.isShared,
-          pricePerCaptia: menuInCart.pricePerCapita
+          pricePerCaptia: menuInCart.pricePerCapita,
+          name: menuInCart.name,
+          image: menuInCart.image
         }
         ws.emit('sendPartyMessage', replyOperation, replyBody)
 
