@@ -223,7 +223,7 @@ export default class InRoom extends State {
     exceptMember?: Member
   ): void {
     if (this._ws.roomID === partyRoom.id) {
-      if (exceptMember !== null && this._ws === exceptMember.ws) {
+      if (exceptMember !== undefined && this._ws === exceptMember.ws) {
         return
       }
 
