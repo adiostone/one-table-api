@@ -73,12 +73,12 @@ interface ReplyGetMyPartyMetadataBody {
     name: string
     icon: string
     minOrderPrice: number
-    totalPrice: number
   }
   title: string
   address: string
   capacity: number
   size: number
+  totalPrice: number
 }
 
 type ReplyGetMyPartyMemberListBody = {
@@ -367,13 +367,13 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
         id: myParty.restaurant.get('id'),
         name: myParty.restaurant.get('name'),
         icon: myParty.restaurant.get('icon'),
-        minOrderPrice: myParty.restaurant.get('minOrderPrice'),
-        totalPrice: myParty.totalPrice
+        minOrderPrice: myParty.restaurant.get('minOrderPrice')
       },
       title: myParty.title,
       address: myParty.address,
       capacity: myParty.capacity,
-      size: myParty.size
+      size: myParty.size,
+      totalPrice: myParty.totalPrice
     }
 
     ws.emit('sendPartyMessage', operation, body)
