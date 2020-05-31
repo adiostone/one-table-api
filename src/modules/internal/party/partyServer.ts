@@ -139,7 +139,7 @@ interface ReplyUpdateMenuInCartBody {
     id: number
     quantity: number
     isShared: boolean
-    pricePerCaptia: number
+    pricePerCapita: number
     name: string
     image: string
   }
@@ -529,7 +529,7 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
           id: menuInCart.id,
           quantity: menuInCart.quantity,
           isShared: body.isShared,
-          pricePerCaptia: menuInCart.pricePerCapita,
+          pricePerCapita: menuInCart.pricePerCapita,
           name: menuInCart.name,
           image: menuInCart.image
         }
