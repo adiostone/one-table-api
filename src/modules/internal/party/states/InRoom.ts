@@ -143,7 +143,7 @@ export default class InRoom extends State {
     partyRoom: PartyRoom,
     menuInCart: MenuInCart
   ): void {
-    if (this._ws.roomID === partyRoom.id) {
+    if (this._ws.roomID === partyRoom.id && this._ws !== partyRoom.host.ws) {
       const operation = 'notifyNewSharedMenu'
       const body: NotifyNewSharedMenuBody = {
         id: menuInCart.id,
@@ -162,7 +162,7 @@ export default class InRoom extends State {
     partyRoom: PartyRoom,
     menuInCart: MenuInCart
   ): void {
-    if (this._ws.roomID === partyRoom.id) {
+    if (this._ws.roomID === partyRoom.id && this._ws !== partyRoom.host.ws) {
       const operation = 'notifyUpdateSharedMenu'
       const body: NotifyUpdateSharedMenuBody = {
         id: menuInCart.id,
@@ -178,7 +178,7 @@ export default class InRoom extends State {
   }
 
   public notifyDeleteSharedMenu(partyRoom: PartyRoom, menuInCart: MenuInCart) {
-    if (this._ws.roomID === partyRoom.id) {
+    if (this._ws.roomID === partyRoom.id && this._ws !== partyRoom.host.ws) {
       const operation = 'notifyDeleteSharedMenu'
       const body: NotifyDeleteSharedMenuBody = {
         id: menuInCart.id,
