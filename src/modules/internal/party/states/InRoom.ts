@@ -63,6 +63,15 @@ interface NotifyMemberSetReadyBody {
   isReady: boolean
 }
 
+type NotifyRefreshSharedCartBody = {
+  id: number
+  quantity: number
+  isShared: boolean
+  pricePerCapita: number
+  name: string
+  image: string
+}[]
+
 export default class InRoom extends State {
   public notifyNewParty(newPartyRoom: PartyRoom): void {
     // do nothing
@@ -204,6 +213,33 @@ export default class InRoom extends State {
         id: member.ws.user.get('id'),
         isReady: member.isReady
       }
+
+      this._ws.emit('sendPartyMessage', operation, body)
+    }
+  }
+
+  public notifyRefreshSharedCart(
+    partyRoom: PartyRoom,
+    exceptMember?: Member
+  ): void {
+    if (this._ws.roomID === partyRoom.id) {
+      if (exceptMember !== null && this._ws === exceptMember.ws) {
+        return
+      }
+
+      const operation = 'notifyRefreshSharedCart'
+      const body: NotifyRefreshSharedCartBody = partyRoom.sharedCart.map(
+        menuInCart => {
+          return {
+            id: menuInCart.id,
+            quantity: menuInCart.quantity,
+            isShared: true,
+            pricePerCapita: menuInCart.pricePerCapita,
+            name: menuInCart.name,
+            image: menuInCart.image
+          }
+        }
+      )
 
       this._ws.emit('sendPartyMessage', operation, body)
     }

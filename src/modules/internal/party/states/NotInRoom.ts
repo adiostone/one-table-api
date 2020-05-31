@@ -133,4 +133,11 @@ export default class NotInRoom extends State {
   public notifyMemberSetReady(partyRoom: PartyRoom, member: Member): void {
     // do nothing
   }
+
+  public notifyRefreshSharedCart(
+    partyRoom: PartyRoom,
+    exceptMember?: Member
+  ): void {
+    // do nothing
+  }
 }

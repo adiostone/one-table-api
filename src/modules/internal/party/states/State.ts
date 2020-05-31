@@ -50,4 +50,9 @@ export default abstract class State {
     partyRoom: PartyRoom,
     member: Member
   ): void
+
+  public abstract notifyRefreshSharedCart(
+    partyRoom: PartyRoom,
+    exceptMember?: Member
+  ): void
 }
