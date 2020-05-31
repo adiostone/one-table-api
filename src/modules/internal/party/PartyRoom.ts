@@ -202,7 +202,7 @@ export default class PartyRoom {
     let cart: MenuInCart[]
     if (isShared) {
       if (!member.isHost) {
-        throw Error('only host can add shared menu to cart')
+        throw Error('only host can update shared menu in cart')
       }
 
       cart = this.sharedCart
@@ -231,6 +231,49 @@ export default class PartyRoom {
     menuInCart.pricePerCapita = isShared
       ? Math.floor(totalPrice / this.size)
       : totalPrice
+
+    // if shared menu, make all members to not ready state
+    if (isShared) {
+      for (const member of this.members) {
+        member.isReady = false
+      }
+    }
+
+    return menuInCart
+  }
+
+  public deleteMenuInCart(
+    ws: PartyWS,
+    id: number,
+    isShared: boolean
+  ): MenuInCart {
+    const member = this.getMember(ws.user.get('id'))
+    if (member === undefined) {
+      throw Error('user is not member of this party room')
+    }
+    if (member.isReady) {
+      throw Error('cannot delete menu when ready state')
+    }
+
+    let cart: MenuInCart[]
+    if (isShared) {
+      if (!member.isHost) {
+        throw Error('only host can delete shared menu in cart')
+      }
+
+      cart = this.sharedCart
+    } else {
+      cart = member.cart
+    }
+
+    const menuIndex = cart.findIndex(menu => menu.id === id)
+    // if the menu isn't exist in the cart
+    if (menuIndex === -1) {
+      throw Error('this menu is not exist in the cart')
+    }
+
+    const menuInCart = cart[menuIndex]
+    cart.splice(menuIndex, 1)
 
     // if shared menu, make all members to not ready state
     if (isShared) {
