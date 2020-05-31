@@ -73,7 +73,21 @@ export default class PartyRoom {
     return this.members.find(member => member.isHost)
   }
 
-  // public get totalPrice(): number {}
+  public get totalPrice(): number {
+    let sharedCartTotalPrice = 0
+    for (const sharedMenu of this.sharedCart) {
+      sharedCartTotalPrice += sharedMenu.unitPrice * sharedMenu.quantity
+    }
+
+    let privateCartTotalPrice = 0
+    for (const member of this.members) {
+      for (const privateMenu of member.cart) {
+        privateCartTotalPrice += privateMenu.unitPrice * privateMenu.quantity
+      }
+    }
+
+    return sharedCartTotalPrice + privateCartTotalPrice
+  }
 
   public getMember(userID: string): Member | undefined {
     return this.members.find(member => member.ws.user.get('id') === userID)
