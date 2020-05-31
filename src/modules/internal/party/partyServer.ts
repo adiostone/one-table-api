@@ -72,6 +72,7 @@ interface ReplyGetMyPartyMetadataBody {
     id: number
     name: string
     icon: string
+    minOrderPrice: number
   }
   title: string
   address: string
@@ -364,7 +365,8 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
       restaurant: {
         id: myParty.restaurant.get('id'),
         name: myParty.restaurant.get('name'),
-        icon: myParty.restaurant.get('icon')
+        icon: myParty.restaurant.get('icon'),
+        minOrderPrice: myParty.restaurant.get('minOrderPrice')
       },
       title: myParty.title,
       address: myParty.address,
