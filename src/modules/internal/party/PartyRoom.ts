@@ -34,6 +34,7 @@ export default class PartyRoom {
   public members: Member[]
   public chats: Chat[]
   public sharedCart: MenuInCart[]
+  public isPaymentPhase: boolean
 
   public async createParty(
     restaurantID: number,
@@ -50,7 +51,8 @@ export default class PartyRoom {
       this.capacity,
       this.members,
       this.chats,
-      this.sharedCart
+      this.sharedCart,
+      this.isPaymentPhase
     ] = [
       nanoid(12),
       await Restaurant.findByPk(restaurantID),
@@ -59,7 +61,8 @@ export default class PartyRoom {
       capacity,
       [{ ws: hostWS, isHost: true, isReady: false, cart: [] }],
       [],
-      []
+      [],
+      false
     ]
 
     hostWS.roomID = this.id
@@ -332,5 +335,23 @@ export default class PartyRoom {
 
       menuInCart.pricePerCapita = Math.floor(totalPrice / this.size)
     }
+  }
+
+  public goToPayment(ws: PartyWS): void {
+    const member = this.getMember(ws.user.get('id'))
+    if (member === undefined) {
+      throw Error('user is not member of this party room')
+    }
+    if (!member.isHost) {
+      throw Error('only host can go to payment phase')
+    }
+    if (!this.members.every(member => member.isReady)) {
+      throw Error('all member must ready')
+    }
+    if (this.totalPrice < this.restaurant.get('minOrderPrice')) {
+      throw Error('Total price must exceed minimum order price')
+    }
+
+    this.isPaymentPhase = true
   }
 }

@@ -259,4 +259,12 @@ export default class InRoom extends State {
       this._ws.emit('sendPartyMessage', operation, body)
     }
   }
+
+  public notifyGoToPayment(partyRoom: PartyRoom): void {
+    if (this._ws.roomID === partyRoom.id) {
+      const operation = 'notifyGoToPayment'
+
+      this._ws.emit('sendPartyMessage', operation)
+    }
+  }
 }

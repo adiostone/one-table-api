@@ -672,6 +672,20 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
 
     ws.emit('sendPartyMessage', replyOperation, replyBody)
   })
+
+  ws.on('goToPurchase', () => {
+    const partyRoom = partyRoomList[ws.roomID]
+
+    try {
+      partyRoom.goToPayment(ws)
+    } catch (e) {
+      return
+    }
+
+    partyRoom.members.forEach(member => {
+      member.ws.state.notifyGoToPayment(partyRoom)
+    })
+  })
 })
 
 partyServer.on('close', () => {

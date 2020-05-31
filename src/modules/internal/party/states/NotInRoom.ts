@@ -144,4 +144,8 @@ export default class NotInRoom extends State {
   public notifyRefreshTotalPrice(partyRoom: PartyRoom): void {
     // do nothing
   }
+
+  public notifyGoToPayment(partyRoom: PartyRoom): void {
+    // do nothing
+  }
 }
