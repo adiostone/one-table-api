@@ -55,4 +55,6 @@ export default abstract class State {
     partyRoom: PartyRoom,
     exceptMember?: Member
   ): void
+
+  public abstract notifyRefreshTotalPrice(partyRoom: PartyRoom): void
 }

@@ -72,6 +72,10 @@ type NotifyRefreshSharedCartBody = {
   image: string
 }[]
 
+interface NotifyRefreshTotalPrice {
+  totalPrice: number
+}
+
 export default class InRoom extends State {
   public notifyNewParty(newPartyRoom: PartyRoom): void {
     // do nothing
@@ -240,6 +244,17 @@ export default class InRoom extends State {
           }
         }
       )
+
+      this._ws.emit('sendPartyMessage', operation, body)
+    }
+  }
+
+  public notifyRefreshTotalPrice(partyRoom: PartyRoom): void {
+    if (this._ws.roomID === partyRoom.id) {
+      const operation = 'notifyRefreshTotalPrice'
+      const body: NotifyRefreshTotalPrice = {
+        totalPrice: partyRoom.totalPrice
+      }
 
       this._ws.emit('sendPartyMessage', operation, body)
     }
