@@ -347,13 +347,9 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
       return
     }
 
-    transitionTo(ws, new NotInRoom())
-
-    ws.emit('sendPartyMessage', replyOperation, replyBody)
-
     // if there are no longer members, delete party
     if (myParty.size === 0) {
-      delete partyRoomList[ws.roomID]
+      delete partyRoomList[myParty.id]
       partyServer.clients.forEach((partyWS: PartyWS) => {
         partyWS.state.notifyDeleteParty(myParty)
       })
@@ -362,6 +358,9 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
         partyWS.state.notifyLeaveParty(myParty, outMember)
       })
     }
+
+    transitionTo(ws, new NotInRoom())
+    ws.emit('sendPartyMessage', replyOperation, replyBody)
   })
 
   ws.on('kickOutMember', (body: KickOutMemberBody) => {

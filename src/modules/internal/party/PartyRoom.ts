@@ -105,8 +105,8 @@ export default class PartyRoom {
     this.members.splice(memberIndex, 1)
     ws.roomID = null
 
-    // if out member is host, pick new host randomly
-    if (outMember.isHost) {
+    // if out member is host and not empty, pick new host randomly
+    if (outMember.isHost && this.size > 0) {
       const newHost = this.members[Math.floor(Math.random() * this.size)]
       newHost.isHost = true
       newHost.isReady = false
