@@ -345,7 +345,7 @@ export default class PartyRoom {
     if (!member.isHost) {
       throw Error('only host can go to payment phase')
     }
-    if (!this.members.every(member => member.isReady)) {
+    if (!this.members.every(member => member.isHost || member.isReady)) {
       throw Error('all member must ready')
     }
     if (this.totalPrice < this.restaurant.get('minOrderPrice')) {
