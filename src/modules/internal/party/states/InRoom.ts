@@ -49,6 +49,11 @@ interface NotifyUpdateSharedMenuBody {
   pricePerCapita: number
 }
 
+interface NotifyDeleteSharedMenuBody {
+  id: number
+  isShared: boolean
+}
+
 export default class InRoom extends State {
   public notifyNewParty(newPartyRoom: PartyRoom): void {
     // do nothing
@@ -153,6 +158,18 @@ export default class InRoom extends State {
         quantity: menuInCart.quantity,
         isShared: true,
         pricePerCapita: menuInCart.pricePerCapita
+      }
+
+      this._ws.emit('sendPartyMessage', operation, body)
+    }
+  }
+
+  public notifyDeleteSharedMenu(partyRoom: PartyRoom, menuInCart: MenuInCart) {
+    if (this._ws.roomID === partyRoom.id) {
+      const operation = 'notifyDeleteSharedMenu'
+      const body: NotifyDeleteSharedMenuBody = {
+        id: menuInCart.id,
+        isShared: true
       }
 
       this._ws.emit('sendPartyMessage', operation, body)

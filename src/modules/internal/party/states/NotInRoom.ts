@@ -122,6 +122,10 @@ export default class NotInRoom extends State {
     // do nothing
   }
 
+  public notifyDeleteSharedMenu(partyRoom: PartyRoom, menuInCart: MenuInCart) {
+    // do nothing
+  }
+
   public notifyAllMemberNotReady(partyRoom: PartyRoom): void {
     // do nothing
   }
