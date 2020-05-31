@@ -1,6 +1,8 @@
 import State from '@/modules/internal/party/states/State'
-import PartyRoom from '@/modules/internal/party/PartyRoom'
-import User from '@/models/User'
+import PartyRoom, {
+  Member,
+  MenuInCart
+} from '@/modules/internal/party/PartyRoom'
 
 interface NotifyNewPartyBody {
   id: string
@@ -24,6 +26,13 @@ interface NotifyDeletePartyBody {
   id: string
 }
 
+interface NotifyKickedOutMemberBody {
+  size: number
+  user: {
+    id: string
+  }
+}
+
 export default class NotInRoom extends State {
   public notifyNewParty(newPartyRoom: PartyRoom): void {
     const operation = 'notifyNewParty'
@@ -37,27 +46,27 @@ export default class NotInRoom extends State {
       title: newPartyRoom.title,
       address: newPartyRoom.address,
       capacity: newPartyRoom.capacity,
-      size: newPartyRoom.members.length
+      size: newPartyRoom.size
     }
 
     this._ws.emit('sendPartyMessage', operation, body)
   }
 
-  public notifyJoinParty(partyRoom: PartyRoom, newMember: User): void {
+  public notifyJoinParty(partyRoom: PartyRoom, newMember: Member): void {
     const operation = 'notifyChangedPartySize'
     const body: NotifyChangedPartySizeBody = {
       id: partyRoom.id,
-      size: partyRoom.members.length
+      size: partyRoom.size
     }
 
     this._ws.emit('sendPartyMessage', operation, body)
   }
 
-  public notifyLeaveParty(partyRoom: PartyRoom, outMember: User): void {
+  public notifyLeaveParty(partyRoom: PartyRoom, outMember: Member): void {
     const operation = 'notifyChangedPartySize'
     const body: NotifyChangedPartySizeBody = {
       id: partyRoom.id,
-      size: partyRoom.members.length
+      size: partyRoom.size
     }
 
     this._ws.emit('sendPartyMessage', operation, body)
@@ -72,7 +81,41 @@ export default class NotInRoom extends State {
     this._ws.emit('sendPartyMessage', operation, body)
   }
 
+  public notifyKickedOutMember(partyRoom: PartyRoom, outMember: Member): void {
+    let operation, body
+
+    // if the kicked out member
+    if (this._ws === outMember.ws) {
+      operation = 'notifyKickedOutMember'
+      body = {
+        size: partyRoom.size,
+        user: {
+          id: outMember.ws.user.get('id')
+        }
+      } as NotifyKickedOutMemberBody
+    } else {
+      operation = 'notifyChangedPartySize'
+      body = {
+        id: partyRoom.id,
+        size: partyRoom.size
+      } as NotifyChangedPartySizeBody
+    }
+
+    this._ws.emit('sendPartyMessage', operation, body)
+  }
+
   public notifyNewChat(partyRoom: PartyRoom): void {
+    // do nothing
+  }
+
+  public notifyNewSharedMenu(
+    partyRoom: PartyRoom,
+    menuInCart: MenuInCart
+  ): void {
+    // do nothing
+  }
+
+  public notifyAllMemberNotReady(partyRoom: PartyRoom): void {
     // do nothing
   }
 }

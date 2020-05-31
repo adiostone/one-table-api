@@ -3,7 +3,7 @@ import User from '@/models/User'
 import { HttpRequest } from '@/http/HttpHandler'
 import { setInterval } from 'timers'
 import ms from 'ms'
-import PartyRoom, { Chat } from '@/modules/internal/party/PartyRoom'
+import PartyRoom, { Chat, Member } from '@/modules/internal/party/PartyRoom'
 import State from '@/modules/internal/party/states/State'
 import NotInRoom from '@/modules/internal/party/states/NotInRoom'
 import InRoom from '@/modules/internal/party/states/InRoom'
@@ -80,9 +80,18 @@ type ReplyGetMyPartyMemberListBody = {
   nickname: string
   image: string
   isHost: boolean
+  isReady: boolean
 }[]
 
 interface ReplyLeavePartyBody {
+  isSuccess: boolean
+}
+
+interface KickOutMemberBody {
+  id: string
+}
+
+interface ReplyKickOutMemberBody {
   isSuccess: boolean
 }
 
@@ -90,7 +99,27 @@ interface SendChatBody {
   chat: string
 }
 
+interface ReplySendChatBody {
+  isSuccess: boolean
+}
+
 type ReplyGetMyPartyChats = Chat[]
+
+interface AddToCartBody {
+  id: number
+  quantity: number
+  isShared: boolean
+}
+
+interface ReplyAddToCartBody {
+  isSuccess: boolean
+  addedMenu: null | {
+    id: number
+    quantity: number
+    isShared: boolean
+    pricePerCapita: number
+  }
+}
 
 const partyServer = new WebSocket.Server({ noServer: true })
 export const partyRoomList: { [key: string]: PartyRoom } = {}
@@ -161,6 +190,9 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
     ws.send(JSON.stringify(message))
   })
 
+  /**
+   * Send error message.
+   */
   ws.on('sendErrorMessage', (errorOperation, errorMessage) => {
     const errorBody: ErrorBody = {
       errorOperation: errorOperation,
@@ -170,6 +202,9 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
     ws.emit('sendPartyMessage', 'error', errorBody)
   })
 
+  /**
+   * Close party websocket connection.
+   */
   ws.on('close', () => {
     ws.isAlive = false
     ws.close()
@@ -192,7 +227,7 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
           title: partyRoom.title,
           address: partyRoom.address,
           capacity: partyRoom.capacity,
-          size: partyRoom.members.length
+          size: partyRoom.size
         }
       }
     )
@@ -238,8 +273,9 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
       isSuccess: true
     }
 
+    let newMember: Member
     try {
-      partyRoom.joinParty(ws)
+      newMember = partyRoom.joinParty(ws)
     } catch (e) {
       replyBody.isSuccess = false
       ws.emit('sendPartyMessage', replyOperation, replyBody)
@@ -252,10 +288,13 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
 
     // notify
     partyServer.clients.forEach((partyWS: PartyWS) => {
-      partyWS.state.notifyJoinParty(partyRoom, ws.user)
+      partyWS.state.notifyJoinParty(partyRoom, newMember)
     })
   })
 
+  /**
+   * Get my party's metadata.
+   */
   ws.on('getMyPartyMetadata', () => {
     const myParty = partyRoomList[ws.roomID]
 
@@ -270,7 +309,7 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
       title: myParty.title,
       address: myParty.address,
       capacity: myParty.capacity,
-      size: myParty.members.length
+      size: myParty.size
     }
 
     ws.emit('sendPartyMessage', operation, body)
@@ -280,59 +319,81 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
     const myParty = partyRoomList[ws.roomID]
 
     const operation = 'replyGetMyPartyMemberList'
-    const body: ReplyGetMyPartyMemberListBody = myParty.members.map(
-      memberWS => {
-        return {
-          id: memberWS.user.get('id'),
-          nickname: memberWS.user.get('nickname'),
-          image: memberWS.user.get('image'),
-          isHost: false
-        }
+    const body: ReplyGetMyPartyMemberListBody = myParty.members.map(member => {
+      return {
+        id: member.ws.user.get('id'),
+        nickname: member.ws.user.get('nickname'),
+        image: member.ws.user.get('image'),
+        isHost: member.isHost,
+        isReady: member.isReady
       }
-    )
-    body[0].isHost = true
+    })
 
     ws.emit('sendPartyMessage', operation, body)
   })
 
   ws.on('leaveParty', () => {
     const myParty = partyRoomList[ws.roomID]
-    const hostID = myParty.members[0].user.get('id')
     const replyOperation = 'replyLeaveParty'
     const replyBody: ReplyLeavePartyBody = {
       isSuccess: true
     }
 
-    // if host, delete party
-    if (ws.user.get('id') === hostID) {
-      // first notify to not in room users
+    let outMember: Member
+    try {
+      outMember = myParty.leaveParty(ws)
+    } catch (e) {
+      ws.emit('sendPartyMessage', replyOperation, replyBody)
+      return
+    }
+
+    transitionTo(ws, new NotInRoom())
+
+    ws.emit('sendPartyMessage', replyOperation, replyBody)
+
+    // if there are no longer members, delete party
+    if (myParty.size === 0) {
       delete partyRoomList[ws.roomID]
       partyServer.clients.forEach((partyWS: PartyWS) => {
         partyWS.state.notifyDeleteParty(myParty)
       })
-
-      // second notify to all members except host
-      for (let i = 1; i < myParty.members.length; i++) {
-        const currWS = myParty.members[1]
-        myParty.leaveParty(currWS)
-        transitionTo(currWS, new NotInRoom())
-        currWS.emit('sendPartyMessage', 'notifyKickedOutParty')
-      }
-
-      // finally notify to the host
-      myParty.leaveParty(ws)
-      transitionTo(ws, new NotInRoom())
-      ws.emit('sendPartyMessage', replyOperation, replyBody)
     } else {
-      myParty.leaveParty(ws)
-      transitionTo(ws, new NotInRoom())
-
-      ws.emit('sendPartyMessage', replyOperation, replyBody)
-
       partyServer.clients.forEach((partyWS: PartyWS) => {
-        partyWS.state.notifyLeaveParty(myParty, ws.user)
+        partyWS.state.notifyLeaveParty(myParty, outMember)
       })
     }
+  })
+
+  ws.on('kickOutMember', (body: KickOutMemberBody) => {
+    const myParty = partyRoomList[ws.roomID]
+    const member = myParty.getMember(ws.user.get('id'))
+    const replyOperation = 'replyKickOutMember'
+    const replyBody: ReplyKickOutMemberBody = {
+      isSuccess: true
+    }
+
+    // if not host, cannot kick out other members.
+    if (!member.isHost) {
+      replyBody.isSuccess = false
+      ws.emit('sendPartyMessage', replyOperation, replyBody)
+      return
+    }
+
+    // if member to kick is not exist in the party room
+    const memberToKick = myParty.getMember(body.id)
+    if (memberToKick === undefined) {
+      replyBody.isSuccess = false
+      ws.emit('sendPartyMessage', replyOperation, replyBody)
+      return
+    }
+
+    myParty.leaveParty(memberToKick.ws)
+    transitionTo(memberToKick.ws, new NotInRoom())
+    ws.emit('sendPartyMessage', replyOperation, replyBody)
+
+    partyServer.clients.forEach((partyWS: PartyWS) => {
+      partyWS.state.notifyKickedOutMember(myParty, memberToKick)
+    })
   })
 
   ws.on('getMyPartyChats', () => {
@@ -346,11 +407,56 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
 
   ws.on('sendChat', (body: SendChatBody) => {
     const partyRoom = partyRoomList[ws.roomID]
-    partyRoom.sendChat(ws, body.chat)
+    const replyOperation = 'replySendChat'
+    const replyBody: ReplySendChatBody = {
+      isSuccess: true
+    }
 
-    partyRoom.members.forEach(partyWS => {
-      partyWS.state.notifyNewChat(partyRoom)
+    try {
+      partyRoom.sendChat(ws, body.chat)
+    } catch (e) {
+      replyBody.isSuccess = false
+      ws.emit('sendPartyMessage', replyOperation, replyBody)
+      return
+    }
+
+    ws.emit('sendPartyMessage', replyOperation, replyBody)
+
+    partyRoom.members.forEach(member => {
+      member.ws.state.notifyNewChat(partyRoom)
     })
+  })
+
+  ws.on('addToCart', (body: AddToCartBody) => {
+    const partyRoom = partyRoomList[ws.roomID]
+    const replyOperation = 'replyAddToCart'
+    const replyBody: ReplyAddToCartBody = {
+      isSuccess: true,
+      addedMenu: null
+    }
+
+    partyRoom
+      .addToCart(ws, body.id, body.quantity, body.isShared)
+      .then(menuInCart => {
+        replyBody.addedMenu = {
+          id: menuInCart.id,
+          quantity: menuInCart.quantity,
+          isShared: body.isShared,
+          pricePerCapita: menuInCart.pricePerCapita
+        }
+        ws.emit('sendPartyMessage', replyOperation, replyBody)
+
+        if (body.isShared) {
+          partyRoom.members.forEach(member => {
+            member.ws.state.notifyNewSharedMenu(partyRoom, menuInCart)
+            member.ws.state.notifyAllMemberNotReady(partyRoom)
+          })
+        }
+      })
+      .catch(() => {
+        replyBody.isSuccess = false
+        ws.emit('sendPartyMessage', replyOperation, replyBody)
+      })
   })
 })
 

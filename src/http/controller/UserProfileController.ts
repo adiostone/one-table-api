@@ -2,6 +2,7 @@ import { SimpleHandler } from '@/http/HttpHandler'
 import User from '@/models/User'
 
 interface GetResponseBody {
+  id: string
   email: string
   nickname: string
   image: string | null
@@ -17,6 +18,7 @@ export default class UserProfileController {
     const user = req.user as User
 
     const responseBody: GetResponseBody = {
+      id: user.get('id'),
       email: user.get('email'),
       nickname: user.get('nickname'),
       image: user.get('image')

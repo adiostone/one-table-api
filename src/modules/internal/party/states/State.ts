@@ -1,6 +1,8 @@
 import { PartyWS } from '@/modules/internal/party/partyServer'
-import PartyRoom from '@/modules/internal/party/PartyRoom'
-import User from '@/models/User'
+import PartyRoom, {
+  Member,
+  MenuInCart
+} from '@/modules/internal/party/PartyRoom'
 
 export default abstract class State {
   protected _ws: PartyWS
@@ -11,11 +13,26 @@ export default abstract class State {
 
   public abstract notifyNewParty(newPartyRoom: PartyRoom): void
 
-  public abstract notifyJoinParty(partyRoom: PartyRoom, newMember: User): void
+  public abstract notifyJoinParty(partyRoom: PartyRoom, newMember: Member): void
 
-  public abstract notifyLeaveParty(partyRoom: PartyRoom, outMember: User): void
+  public abstract notifyLeaveParty(
+    partyRoom: PartyRoom,
+    outMember: Member
+  ): void
 
   public abstract notifyDeleteParty(partyRoom: PartyRoom): void
 
+  public abstract notifyKickedOutMember(
+    partyRoom: PartyRoom,
+    outMember: Member
+  ): void
+
   public abstract notifyNewChat(partyRoom: PartyRoom): void
+
+  public abstract notifyNewSharedMenu(
+    partyRoom: PartyRoom,
+    menuInCart: MenuInCart
+  ): void
+
+  public abstract notifyAllMemberNotReady(partyRoom: PartyRoom): void
 }
