@@ -40,6 +40,40 @@ interface NotifyNewSharedMenuBody {
   quantity: number
   isShared: boolean
   pricePerCapita: number
+  name: string
+  image: string
+}
+
+interface NotifyUpdateSharedMenuBody {
+  id: number
+  quantity: number
+  isShared: boolean
+  pricePerCapita: number
+  name: string
+  image: string
+}
+
+interface NotifyDeleteSharedMenuBody {
+  id: number
+  isShared: boolean
+}
+
+interface NotifyMemberSetReadyBody {
+  id: string
+  isReady: boolean
+}
+
+type NotifyRefreshSharedCartBody = {
+  id: number
+  quantity: number
+  isShared: boolean
+  pricePerCapita: number
+  name: string
+  image: string
+}[]
+
+interface NotifyRefreshTotalPrice {
+  totalPrice: number
 }
 
 export default class InRoom extends State {
@@ -122,13 +156,46 @@ export default class InRoom extends State {
     partyRoom: PartyRoom,
     menuInCart: MenuInCart
   ): void {
-    if (this._ws.roomID === partyRoom.id) {
+    if (this._ws.roomID === partyRoom.id && this._ws !== partyRoom.host.ws) {
       const operation = 'notifyNewSharedMenu'
       const body: NotifyNewSharedMenuBody = {
         id: menuInCart.id,
         quantity: menuInCart.quantity,
         isShared: true,
-        pricePerCapita: menuInCart.pricePerCapita
+        pricePerCapita: menuInCart.pricePerCapita,
+        name: menuInCart.name,
+        image: menuInCart.image
+      }
+
+      this._ws.emit('sendPartyMessage', operation, body)
+    }
+  }
+
+  public notifyUpdateSharedMenu(
+    partyRoom: PartyRoom,
+    menuInCart: MenuInCart
+  ): void {
+    if (this._ws.roomID === partyRoom.id && this._ws !== partyRoom.host.ws) {
+      const operation = 'notifyUpdateSharedMenu'
+      const body: NotifyUpdateSharedMenuBody = {
+        id: menuInCart.id,
+        quantity: menuInCart.quantity,
+        isShared: true,
+        pricePerCapita: menuInCart.pricePerCapita,
+        name: menuInCart.name,
+        image: menuInCart.image
+      }
+
+      this._ws.emit('sendPartyMessage', operation, body)
+    }
+  }
+
+  public notifyDeleteSharedMenu(partyRoom: PartyRoom, menuInCart: MenuInCart) {
+    if (this._ws.roomID === partyRoom.id && this._ws !== partyRoom.host.ws) {
+      const operation = 'notifyDeleteSharedMenu'
+      const body: NotifyDeleteSharedMenuBody = {
+        id: menuInCart.id,
+        isShared: true
       }
 
       this._ws.emit('sendPartyMessage', operation, body)
@@ -138,6 +205,64 @@ export default class InRoom extends State {
   public notifyAllMemberNotReady(partyRoom: PartyRoom): void {
     if (this._ws.roomID === partyRoom.id) {
       const operation = 'notifyAllMemberNotReady'
+
+      this._ws.emit('sendPartyMessage', operation)
+    }
+  }
+
+  public notifyMemberSetReady(partyRoom: PartyRoom, member: Member): void {
+    if (this._ws.roomID === partyRoom.id && this._ws !== member.ws) {
+      const operation = 'notifyMemberReady'
+      const body: NotifyMemberSetReadyBody = {
+        id: member.ws.user.get('id'),
+        isReady: member.isReady
+      }
+
+      this._ws.emit('sendPartyMessage', operation, body)
+    }
+  }
+
+  public notifyRefreshSharedCart(
+    partyRoom: PartyRoom,
+    exceptMember?: Member
+  ): void {
+    if (this._ws.roomID === partyRoom.id) {
+      if (exceptMember !== undefined && this._ws === exceptMember.ws) {
+        return
+      }
+
+      const operation = 'notifyRefreshSharedCart'
+      const body: NotifyRefreshSharedCartBody = partyRoom.sharedCart.map(
+        menuInCart => {
+          return {
+            id: menuInCart.id,
+            quantity: menuInCart.quantity,
+            isShared: true,
+            pricePerCapita: menuInCart.pricePerCapita,
+            name: menuInCart.name,
+            image: menuInCart.image
+          }
+        }
+      )
+
+      this._ws.emit('sendPartyMessage', operation, body)
+    }
+  }
+
+  public notifyRefreshTotalPrice(partyRoom: PartyRoom): void {
+    if (this._ws.roomID === partyRoom.id) {
+      const operation = 'notifyRefreshTotalPrice'
+      const body: NotifyRefreshTotalPrice = {
+        totalPrice: partyRoom.totalPrice
+      }
+
+      this._ws.emit('sendPartyMessage', operation, body)
+    }
+  }
+
+  public notifyGoToPayment(partyRoom: PartyRoom): void {
+    if (this._ws.roomID === partyRoom.id) {
+      const operation = 'notifyGoToPayment'
 
       this._ws.emit('sendPartyMessage', operation)
     }

@@ -115,7 +115,37 @@ export default class NotInRoom extends State {
     // do nothing
   }
 
+  public notifyUpdateSharedMenu(
+    partyRoom: PartyRoom,
+    menuInCart: MenuInCart
+  ): void {
+    // do nothing
+  }
+
+  public notifyDeleteSharedMenu(partyRoom: PartyRoom, menuInCart: MenuInCart) {
+    // do nothing
+  }
+
   public notifyAllMemberNotReady(partyRoom: PartyRoom): void {
+    // do nothing
+  }
+
+  public notifyMemberSetReady(partyRoom: PartyRoom, member: Member): void {
+    // do nothing
+  }
+
+  public notifyRefreshSharedCart(
+    partyRoom: PartyRoom,
+    exceptMember?: Member
+  ): void {
+    // do nothing
+  }
+
+  public notifyRefreshTotalPrice(partyRoom: PartyRoom): void {
+    // do nothing
+  }
+
+  public notifyGoToPayment(partyRoom: PartyRoom): void {
     // do nothing
   }
 }

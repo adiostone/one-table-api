@@ -3,7 +3,11 @@ import User from '@/models/User'
 import { HttpRequest } from '@/http/HttpHandler'
 import { setInterval } from 'timers'
 import ms from 'ms'
-import PartyRoom, { Chat, Member } from '@/modules/internal/party/PartyRoom'
+import PartyRoom, {
+  Chat,
+  Member,
+  MenuInCart
+} from '@/modules/internal/party/PartyRoom'
 import State from '@/modules/internal/party/states/State'
 import NotInRoom from '@/modules/internal/party/states/NotInRoom'
 import InRoom from '@/modules/internal/party/states/InRoom'
@@ -68,11 +72,13 @@ interface ReplyGetMyPartyMetadataBody {
     id: number
     name: string
     icon: string
+    minOrderPrice: number
   }
   title: string
   address: string
   capacity: number
   size: number
+  totalPrice: number
 }
 
 type ReplyGetMyPartyMemberListBody = {
@@ -118,8 +124,58 @@ interface ReplyAddToCartBody {
     quantity: number
     isShared: boolean
     pricePerCapita: number
+    name: string
+    image: string
   }
 }
+
+interface UpdateMenuInCartBody {
+  id: number
+  quantity: number
+  isShared: boolean
+}
+
+interface ReplyUpdateMenuInCartBody {
+  isSuccess: boolean
+  updatedMenu: null | {
+    id: number
+    quantity: number
+    isShared: boolean
+    pricePerCapita: number
+    name: string
+    image: string
+  }
+}
+
+interface DeleteMenuInCartBody {
+  id: number
+  isShared: boolean
+}
+
+interface ReplyDeleteMenuInCartBody {
+  isSuccess: boolean
+  deletedMenu: null | {
+    id: number
+    isShared: boolean
+  }
+}
+
+interface SetReadyBody {
+  isReady: boolean
+}
+
+interface ReplySetReadyBody {
+  isSuccess: boolean
+}
+
+type ReplyGetSharedCartBody = {
+  id: number
+  quantity: number
+  isShared: boolean
+  pricePerCapita: number
+  name: string
+  image: string
+}[]
 
 const partyServer = new WebSocket.Server({ noServer: true })
 export const partyRoomList: { [key: string]: PartyRoom } = {}
@@ -290,6 +346,12 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
     partyServer.clients.forEach((partyWS: PartyWS) => {
       partyWS.state.notifyJoinParty(partyRoom, newMember)
     })
+
+    partyRoom.refreshSharedCart().then(() => {
+      partyRoom.members.forEach(member => {
+        member.ws.state.notifyRefreshSharedCart(partyRoom, newMember)
+      })
+    })
   })
 
   /**
@@ -304,12 +366,14 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
       restaurant: {
         id: myParty.restaurant.get('id'),
         name: myParty.restaurant.get('name'),
-        icon: myParty.restaurant.get('icon')
+        icon: myParty.restaurant.get('icon'),
+        minOrderPrice: myParty.restaurant.get('minOrderPrice')
       },
       title: myParty.title,
       address: myParty.address,
       capacity: myParty.capacity,
-      size: myParty.size
+      size: myParty.size,
+      totalPrice: myParty.totalPrice
     }
 
     ws.emit('sendPartyMessage', operation, body)
@@ -347,13 +411,9 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
       return
     }
 
-    transitionTo(ws, new NotInRoom())
-
-    ws.emit('sendPartyMessage', replyOperation, replyBody)
-
     // if there are no longer members, delete party
     if (myParty.size === 0) {
-      delete partyRoomList[ws.roomID]
+      delete partyRoomList[myParty.id]
       partyServer.clients.forEach((partyWS: PartyWS) => {
         partyWS.state.notifyDeleteParty(myParty)
       })
@@ -361,7 +421,22 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
       partyServer.clients.forEach((partyWS: PartyWS) => {
         partyWS.state.notifyLeaveParty(myParty, outMember)
       })
+
+      myParty.refreshSharedCart().then(() => {
+        myParty.members.forEach(member => {
+          member.ws.state.notifyRefreshSharedCart(myParty)
+        })
+      })
+
+      if (outMember.cart.length > 0) {
+        myParty.members.forEach(member => {
+          member.ws.state.notifyRefreshTotalPrice(myParty)
+        })
+      }
     }
+
+    transitionTo(ws, new NotInRoom())
+    ws.emit('sendPartyMessage', replyOperation, replyBody)
   })
 
   ws.on('kickOutMember', (body: KickOutMemberBody) => {
@@ -394,6 +469,18 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
     partyServer.clients.forEach((partyWS: PartyWS) => {
       partyWS.state.notifyKickedOutMember(myParty, memberToKick)
     })
+
+    myParty.refreshSharedCart().then(() => {
+      myParty.members.forEach(member => {
+        member.ws.state.notifyRefreshSharedCart(myParty)
+      })
+    })
+
+    if (memberToKick.cart.length > 0) {
+      myParty.members.forEach(member => {
+        member.ws.state.notifyRefreshTotalPrice(myParty)
+      })
+    }
   })
 
   ws.on('getMyPartyChats', () => {
@@ -442,7 +529,9 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
           id: menuInCart.id,
           quantity: menuInCart.quantity,
           isShared: body.isShared,
-          pricePerCapita: menuInCart.pricePerCapita
+          pricePerCapita: menuInCart.pricePerCapita,
+          name: menuInCart.name,
+          image: menuInCart.image
         }
         ws.emit('sendPartyMessage', replyOperation, replyBody)
 
@@ -452,11 +541,150 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
             member.ws.state.notifyAllMemberNotReady(partyRoom)
           })
         }
+
+        partyRoom.members.forEach(member => {
+          member.ws.state.notifyRefreshTotalPrice(partyRoom)
+        })
       })
       .catch(() => {
         replyBody.isSuccess = false
         ws.emit('sendPartyMessage', replyOperation, replyBody)
       })
+  })
+
+  ws.on('updateMenuInCart', (body: UpdateMenuInCartBody) => {
+    const partyRoom = partyRoomList[ws.roomID]
+    const replyOperation = 'replyUpdateMenuInCart'
+    const replyBody: ReplyUpdateMenuInCartBody = {
+      isSuccess: true,
+      updatedMenu: null
+    }
+
+    let updatedMenuInCart: MenuInCart
+    try {
+      updatedMenuInCart = partyRoom.updateMenuInCart(
+        ws,
+        body.id,
+        body.quantity,
+        body.isShared
+      )
+    } catch (e) {
+      replyBody.isSuccess = false
+      ws.emit('sendPartyMessage', replyOperation, replyBody)
+      return
+    }
+
+    replyBody.updatedMenu = {
+      id: updatedMenuInCart.id,
+      quantity: updatedMenuInCart.quantity,
+      isShared: body.isShared,
+      pricePerCapita: updatedMenuInCart.pricePerCapita,
+      name: updatedMenuInCart.name,
+      image: updatedMenuInCart.image
+    }
+    ws.emit('sendPartyMessage', replyOperation, replyBody)
+
+    if (body.isShared) {
+      partyRoom.members.forEach(member => {
+        member.ws.state.notifyUpdateSharedMenu(partyRoom, updatedMenuInCart)
+        member.ws.state.notifyAllMemberNotReady(partyRoom)
+      })
+    }
+
+    partyRoom.members.forEach(member => {
+      member.ws.state.notifyRefreshTotalPrice(partyRoom)
+    })
+  })
+
+  ws.on('deleteMenuInCart', (body: DeleteMenuInCartBody) => {
+    const partyRoom = partyRoomList[ws.roomID]
+    const replyOperation = 'replyDeleteMenuInCart'
+    const replyBody: ReplyDeleteMenuInCartBody = {
+      isSuccess: true,
+      deletedMenu: null
+    }
+
+    let deletedMenuInCart: MenuInCart
+    try {
+      deletedMenuInCart = partyRoom.deleteMenuInCart(ws, body.id, body.isShared)
+    } catch (e) {
+      replyBody.isSuccess = false
+      ws.emit('sendPartyMessage', replyOperation, replyBody)
+      return
+    }
+
+    replyBody.deletedMenu = {
+      id: deletedMenuInCart.id,
+      isShared: body.isShared
+    }
+    ws.emit('sendPartyMessage', replyOperation, replyBody)
+
+    if (body.isShared) {
+      partyRoom.members.forEach(member => {
+        member.ws.state.notifyDeleteSharedMenu(partyRoom, deletedMenuInCart)
+        member.ws.state.notifyAllMemberNotReady(partyRoom)
+      })
+    }
+
+    partyRoom.members.forEach(member => {
+      member.ws.state.notifyRefreshTotalPrice(partyRoom)
+    })
+  })
+
+  ws.on('setReady', (body: SetReadyBody) => {
+    const partyRoom = partyRoomList[ws.roomID]
+    const replyOperation = 'replySetReady'
+    const replyBody: ReplySetReadyBody = {
+      isSuccess: true
+    }
+
+    let readyMember: Member
+    try {
+      readyMember = partyRoom.setReady(ws, body.isReady)
+    } catch (e) {
+      replyBody.isSuccess = false
+      ws.emit('sendPartyMessage', replyOperation, replyBody)
+      return
+    }
+
+    ws.emit('sendPartyMessage', replyOperation, replyBody)
+
+    partyRoom.members.forEach(member => {
+      member.ws.state.notifyMemberSetReady(partyRoom, readyMember)
+    })
+  })
+
+  ws.on('getSharedCart', () => {
+    const partyRoom = partyRoomList[ws.roomID]
+    const replyOperation = 'replyGetSharedCart'
+    const replyBody: ReplyGetSharedCartBody = partyRoom.sharedCart.map(
+      menuInCart => {
+        return {
+          id: menuInCart.id,
+          quantity: menuInCart.quantity,
+          isShared: true,
+          pricePerCapita: menuInCart.pricePerCapita,
+          name: menuInCart.name,
+          image: menuInCart.image
+        }
+      }
+    )
+
+    ws.emit('sendPartyMessage', replyOperation, replyBody)
+  })
+
+  ws.on('goToPayment', () => {
+    const partyRoom = partyRoomList[ws.roomID]
+
+    try {
+      partyRoom.goToPayment(ws)
+    } catch (e) {
+      return
+    }
+
+    partyRoom.members.forEach(member => {
+      member.ws.state.notifyGoToPayment(partyRoom)
+    })
   })
 })
 

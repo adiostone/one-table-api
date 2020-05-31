@@ -34,5 +34,29 @@ export default abstract class State {
     menuInCart: MenuInCart
   ): void
 
+  public abstract notifyUpdateSharedMenu(
+    partyRoom: PartyRoom,
+    menuInCart: MenuInCart
+  ): void
+
+  public abstract notifyDeleteSharedMenu(
+    partyRoom: PartyRoom,
+    menuInCart: MenuInCart
+  ): void
+
   public abstract notifyAllMemberNotReady(partyRoom: PartyRoom): void
+
+  public abstract notifyMemberSetReady(
+    partyRoom: PartyRoom,
+    member: Member
+  ): void
+
+  public abstract notifyRefreshSharedCart(
+    partyRoom: PartyRoom,
+    exceptMember?: Member
+  ): void
+
+  public abstract notifyRefreshTotalPrice(partyRoom: PartyRoom): void
+
+  public abstract notifyGoToPayment(partyRoom: PartyRoom): void
 }
