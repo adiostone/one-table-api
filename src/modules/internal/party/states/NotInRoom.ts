@@ -1,5 +1,8 @@
 import State from '@/modules/internal/party/states/State'
-import PartyRoom, { Member } from '@/modules/internal/party/PartyRoom'
+import PartyRoom, {
+  Member,
+  MenuInCart
+} from '@/modules/internal/party/PartyRoom'
 
 interface NotifyNewPartyBody {
   id: string
@@ -102,6 +105,13 @@ export default class NotInRoom extends State {
   }
 
   public notifyNewChat(partyRoom: PartyRoom): void {
+    // do nothing
+  }
+
+  public notifyNewSharedMenu(
+    partyRoom: PartyRoom,
+    menuInCart: MenuInCart
+  ): void {
     // do nothing
   }
 }

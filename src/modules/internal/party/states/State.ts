@@ -1,5 +1,8 @@
 import { PartyWS } from '@/modules/internal/party/partyServer'
-import PartyRoom, { Member } from '@/modules/internal/party/PartyRoom'
+import PartyRoom, {
+  Member,
+  MenuInCart
+} from '@/modules/internal/party/PartyRoom'
 
 export default abstract class State {
   protected _ws: PartyWS
@@ -25,4 +28,9 @@ export default abstract class State {
   ): void
 
   public abstract notifyNewChat(partyRoom: PartyRoom): void
+
+  public abstract notifyNewSharedMenu(
+    partyRoom: PartyRoom,
+    menuInCart: MenuInCart
+  ): void
 }

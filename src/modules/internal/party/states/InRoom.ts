@@ -1,5 +1,9 @@
 import State from '@/modules/internal/party/states/State'
-import PartyRoom, { Chat, Member } from '@/modules/internal/party/PartyRoom'
+import PartyRoom, {
+  Chat,
+  Member,
+  MenuInCart
+} from '@/modules/internal/party/PartyRoom'
 
 interface NotifyNewMemberBody {
   size: number
@@ -30,6 +34,13 @@ interface NotifyKickedOutMemberBody {
 }
 
 type NotifyNewChatBody = Chat
+
+interface NotifyNewSharedMenuBody {
+  id: number
+  quantity: number
+  isShared: boolean
+  pricePerCapita: number
+}
 
 export default class InRoom extends State {
   public notifyNewParty(newPartyRoom: PartyRoom): void {
@@ -102,6 +113,23 @@ export default class InRoom extends State {
     if (this._ws.roomID === partyRoom.id) {
       const operation = 'notifyNewChat'
       const body: NotifyNewChatBody = partyRoom.chats.slice(-1)[0]
+
+      this._ws.emit('sendPartyMessage', operation, body)
+    }
+  }
+
+  public notifyNewSharedMenu(
+    partyRoom: PartyRoom,
+    menuInCart: MenuInCart
+  ): void {
+    if (this._ws.roomID === partyRoom.id) {
+      const operation = 'notifyNewSharedMenu'
+      const body: NotifyNewSharedMenuBody = {
+        id: menuInCart.id,
+        quantity: menuInCart.quantity,
+        isShared: true,
+        pricePerCapita: menuInCart.pricePerCapita
+      }
 
       this._ws.emit('sendPartyMessage', operation, body)
     }
