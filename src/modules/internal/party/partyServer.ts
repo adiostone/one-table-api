@@ -545,6 +545,7 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
     } catch (e) {
       replyBody.isSuccess = false
       ws.emit('sendPartyMessage', replyOperation, replyBody)
+      return
     }
 
     replyBody.deletedMenu = {
