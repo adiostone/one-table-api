@@ -42,6 +42,13 @@ interface NotifyNewSharedMenuBody {
   pricePerCapita: number
 }
 
+interface NotifyUpdateSharedMenuBody {
+  id: number
+  quantity: number
+  isShared: boolean
+  pricePerCapita: number
+}
+
 export default class InRoom extends State {
   public notifyNewParty(newPartyRoom: PartyRoom): void {
     // do nothing
@@ -125,6 +132,23 @@ export default class InRoom extends State {
     if (this._ws.roomID === partyRoom.id) {
       const operation = 'notifyNewSharedMenu'
       const body: NotifyNewSharedMenuBody = {
+        id: menuInCart.id,
+        quantity: menuInCart.quantity,
+        isShared: true,
+        pricePerCapita: menuInCart.pricePerCapita
+      }
+
+      this._ws.emit('sendPartyMessage', operation, body)
+    }
+  }
+
+  public notifyUpdateSharedMenu(
+    partyRoom: PartyRoom,
+    menuInCart: MenuInCart
+  ): void {
+    if (this._ws.roomID === partyRoom.id) {
+      const operation = 'notifyUpdateSharedMenu'
+      const body: NotifyUpdateSharedMenuBody = {
         id: menuInCart.id,
         quantity: menuInCart.quantity,
         isShared: true,
