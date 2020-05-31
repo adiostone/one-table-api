@@ -105,6 +105,22 @@ interface ReplySendChatBody {
 
 type ReplyGetMyPartyChats = Chat[]
 
+interface AddToCartBody {
+  id: number
+  quantity: number
+  isShared: boolean
+}
+
+interface ReplyAddToCartBody {
+  isSuccess: boolean
+  addedMenu: null | {
+    id: number
+    quantity: number
+    isShared: boolean
+    pricePerCapita: number
+  }
+}
+
 const partyServer = new WebSocket.Server({ noServer: true })
 export const partyRoomList: { [key: string]: PartyRoom } = {}
 
@@ -404,9 +420,43 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
       return
     }
 
+    ws.emit('sendPartyMessage', replyOperation, replyBody)
+
     partyRoom.members.forEach(member => {
       member.ws.state.notifyNewChat(partyRoom)
     })
+  })
+
+  ws.on('addToCart', (body: AddToCartBody) => {
+    const partyRoom = partyRoomList[ws.roomID]
+    const replyOperation = 'replyAddToCart'
+    const replyBody: ReplyAddToCartBody = {
+      isSuccess: true,
+      addedMenu: null
+    }
+
+    partyRoom
+      .addToCart(ws, body.id, body.quantity, body.isShared)
+      .then(menuInCart => {
+        replyBody.addedMenu = {
+          id: menuInCart.id,
+          quantity: menuInCart.quantity,
+          isShared: body.isShared,
+          pricePerCapita: menuInCart.pricePerCapita
+        }
+        ws.emit('sendPartyMessage', replyOperation, replyBody)
+
+        if (body.isShared) {
+          partyRoom.members.forEach(member => {
+            member.ws.state.notifyNewSharedMenu(partyRoom, menuInCart)
+            member.ws.state.notifyAllMemberNotReady(partyRoom)
+          })
+        }
+      })
+      .catch(() => {
+        replyBody.isSuccess = false
+        ws.emit('sendPartyMessage', replyOperation, replyBody)
+      })
   })
 })
 
