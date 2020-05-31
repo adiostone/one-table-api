@@ -166,6 +166,15 @@ interface ReplySetReadyBody {
   isSuccess: boolean
 }
 
+type ReplyGetSharedCartBody = {
+  id: number
+  quantity: number
+  isShared: boolean
+  pricePerCapita: number
+  name: string
+  image: string
+}[]
+
 const partyServer = new WebSocket.Server({ noServer: true })
 export const partyRoomList: { [key: string]: PartyRoom } = {}
 
@@ -591,6 +600,25 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
     partyRoom.members.forEach(member => {
       member.ws.state.notifyMemberSetReady(partyRoom, readyMember)
     })
+  })
+
+  ws.on('getSharedCart', () => {
+    const partyRoom = partyRoomList[ws.roomID]
+    const replyOperation = 'replyGetSharedCart'
+    const replyBody: ReplyGetSharedCartBody = partyRoom.sharedCart.map(
+      menuInCart => {
+        return {
+          id: menuInCart.id,
+          quantity: menuInCart.quantity,
+          isShared: true,
+          pricePerCapita: menuInCart.pricePerCapita,
+          name: menuInCart.name,
+          image: menuInCart.image
+        }
+      }
+    )
+
+    ws.emit('sendPartyMessage', replyOperation, replyBody)
   })
 })
 
