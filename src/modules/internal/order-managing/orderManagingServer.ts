@@ -19,6 +19,24 @@ interface ErrorBody {
   errorMessage: string
 }
 
+interface ByCustomer {
+  phoneNumber: string
+  isNonF2F: boolean
+  address: string
+  request: string
+  menus: {
+    id: number
+    quantity: number
+    isShared: boolean
+    pricePerCapita: number
+    name: string
+    packagingCost: number
+  }[]
+  deliveryCostPerCapita: number
+  nonF2FCost: number
+  totalPrice: number
+}
+
 interface ByMenu {
   menus: {
     id: number
@@ -34,24 +52,7 @@ interface ByMenu {
 }
 
 interface NotifyNewOrderBody {
-  byCustomer: {
-    phoneNumber: string
-    isNonF2F: boolean
-    address: string
-    request: string
-    menus: {
-      id: number
-      quantity: number
-      isShared: boolean
-      pricePerCapita: number
-      name: string
-      packagingCost: number
-    }[]
-    deliveryCostPerCapita: number
-    nonF2FCost: number
-    totalPrice: number
-  }[]
-
+  byCustomer: ByCustomer[]
   byMenu: ByMenu
 }
 
