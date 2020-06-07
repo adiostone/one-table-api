@@ -76,6 +76,19 @@ interface NotifyRefreshTotalPrice {
   totalPrice: number
 }
 
+interface NotifyGoToPaymentBody {
+  menus: {
+    id: number
+    quantity: number
+    isShared: boolean
+    pricePerCapita: number
+    name: string
+    packagingCost: number
+  }[]
+  deliveryCostPerCapita: number
+  totalPrice: number
+}
+
 export default class InRoom extends State {
   public notifyNewParty(newPartyRoom: PartyRoom): void {
     // do nothing
@@ -263,8 +276,45 @@ export default class InRoom extends State {
   public notifyGoToPayment(partyRoom: PartyRoom): void {
     if (this._ws.roomID === partyRoom.id) {
       const operation = 'notifyGoToPayment'
+      const body: NotifyGoToPaymentBody = {
+        menus: [],
+        deliveryCostPerCapita: partyRoom.restaurant.get('deliveryCost'),
+        totalPrice: 0
+      }
 
-      this._ws.emit('sendPartyMessage', operation)
+      // shared menu
+      for (const sharedMenu of partyRoom.sharedCart) {
+        body.menus.push({
+          id: sharedMenu.id,
+          quantity: sharedMenu.quantity,
+          isShared: true,
+          pricePerCapita: sharedMenu.pricePerCapita,
+          name: sharedMenu.name,
+          packagingCost: partyRoom.restaurant.get('packagingCost')
+        })
+
+        body.totalPrice +=
+          sharedMenu.pricePerCapita + partyRoom.restaurant.get('packagingCost')
+      }
+
+      const currMember = partyRoom.members.find(
+        member => member.ws === this._ws
+      )
+
+      for (const privateMenu of currMember.cart) {
+        body.menus.push({
+          id: privateMenu.id,
+          quantity: privateMenu.quantity,
+          isShared: false,
+          pricePerCapita: privateMenu.pricePerCapita,
+          name: privateMenu.name,
+          packagingCost: 0
+        })
+
+        body.totalPrice += privateMenu.pricePerCapita
+      }
+
+      this._ws.emit('sendPartyMessage', operation, body)
     }
   }
 }
