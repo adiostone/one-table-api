@@ -28,6 +28,7 @@ interface MenuPriceBody {
 interface CreateMenuRequestBody {
   name: string
   image: string | null
+  isSharing: boolean
   prices: MenuPriceBody[]
 }
 
@@ -38,6 +39,7 @@ interface CreateMenuResponseBody {
 interface UpdateMenuRequestBody {
   name?: string
   image?: string
+  isSharing?: boolean
   prices?: MenuPriceBody[]
 }
 
@@ -53,7 +55,7 @@ export default class MyMenuController {
           include: [
             {
               association: MenuCategory.associations.menus,
-              attributes: ['id', 'name', 'image'],
+              attributes: ['id', 'name', 'image', 'isSharing'],
               include: [
                 {
                   association: Menu.associations.prices,

@@ -11,6 +11,7 @@ interface RestaurantBody {
   icon: string | null
   category: string
   minOrderPrice: number
+  deliveryCost: number
 }
 
 interface GetRestaurantsBody {
@@ -24,6 +25,9 @@ interface GetRestaurantDetailBody {
   icon: string | null
   category: string
   minOrderPrice: number
+  deliveryCost: number
+  packagingCost: number
+  nonF2FCost: number
   phoneNumber: string
   latitude: number
   longitude: number
@@ -58,6 +62,7 @@ export default class TableRestaurantController {
         'icon',
         'category',
         'minOrderPrice',
+        'deliveryCost',
         'latitude',
         'longitude'
       ]
@@ -109,6 +114,9 @@ export default class TableRestaurantController {
         'icon',
         'category',
         'minOrderPrice',
+        'deliveryCost',
+        'packagingCost',
+        'nonF2FCost',
         'phoneNumber',
         'latitude',
         'longitude',
@@ -124,7 +132,7 @@ export default class TableRestaurantController {
           include: [
             {
               association: MenuCategory.associations.menus,
-              attributes: ['id', 'name', 'image'],
+              attributes: ['id', 'name', 'image', 'isSharing'],
               include: [
                 {
                   association: Menu.associations.prices,

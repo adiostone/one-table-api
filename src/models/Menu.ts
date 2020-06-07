@@ -19,6 +19,11 @@ const schema = {
   image: {
     type: DataTypes.STRING(256),
     allowNull: true
+  },
+  isSharing: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: true,
+    allowNull: false
   }
 }
 
@@ -27,6 +32,7 @@ export default class Menu extends Model {
   public categoryID: number
   public name: string
   public image: string | null
+  public isSharing: boolean
 
   public readonly prices: MenuPrice[]
 

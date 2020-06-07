@@ -8,6 +8,9 @@ interface GetResponseBody {
   icon: string | null
   category: string
   minOrderPrice: number
+  deliveryCost: number
+  packagingCost: number
+  nonF2FCost: number
   phoneNumber: string
   latitude: number
   longitude: number
@@ -24,6 +27,9 @@ interface CreateRequestBody {
   icon?: string
   category: string
   minOrderPrice?: number
+  deliveryCost: number
+  nonF2FCost: number
+  packagingCost: number
   phoneNumber: string
   latitude: number
   longitude: number
@@ -38,6 +44,9 @@ interface UpdateRequestBody {
   icon?: string
   category?: string
   minOrderPrice?: number
+  deliveryCost?: number
+  packagingCost?: number
+  nonF2FCost?: number
   phoneNumber?: string
   latitude?: number
   longitude?: number
@@ -61,6 +70,9 @@ export default class MyRestaurantController {
       icon: restaurant.get('icon'),
       category: restaurant.get('category'),
       minOrderPrice: restaurant.get('minOrderPrice'),
+      deliveryCost: restaurant.get('deliveryCost'),
+      packagingCost: restaurant.get('packagingCost'),
+      nonF2FCost: restaurant.get('nonF2FCost'),
       phoneNumber: restaurant.get('phoneNumber'),
       latitude: restaurant.get('latitude'),
       longitude: restaurant.get('longitude'),
