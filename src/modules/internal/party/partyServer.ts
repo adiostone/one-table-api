@@ -274,21 +274,26 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
    */
   ws.on('getPartyList', () => {
     const operation = 'replyGetPartyList'
-    const body: ReplyGetPartyListBody = Object.values(partyRoomList).map(
-      partyRoom => {
-        return {
-          id: partyRoom.id,
-          restaurant: {
-            id: partyRoom.restaurant.get('id'),
-            name: partyRoom.restaurant.get('name'),
-            icon: partyRoom.restaurant.get('icon')
-          },
-          title: partyRoom.title,
-          address: partyRoom.address,
-          capacity: partyRoom.capacity,
-          size: partyRoom.size
+    const body: ReplyGetPartyListBody = Object.values(partyRoomList).reduce(
+      (accumulator, partyRoom) => {
+        if (partyRoom.isPaymentPhase === false) {
+          accumulator.push({
+            id: partyRoom.id,
+            restaurant: {
+              id: partyRoom.restaurant.get('id'),
+              name: partyRoom.restaurant.get('name'),
+              icon: partyRoom.restaurant.get('icon')
+            },
+            title: partyRoom.title,
+            address: partyRoom.address,
+            capacity: partyRoom.capacity,
+            size: partyRoom.size
+          })
         }
-      }
+
+        return accumulator
+      },
+      []
     )
 
     ws.emit('sendPartyMessage', operation, body)

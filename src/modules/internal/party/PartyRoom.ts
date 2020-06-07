@@ -106,6 +106,10 @@ export default class PartyRoom {
       throw Error('this party room is already full')
     }
 
+    if (this.isPaymentPhase) {
+      throw Error('this party is already payment phase')
+    }
+
     const newMember: Member = {
       ws: ws,
       isHost: false,
@@ -122,6 +126,10 @@ export default class PartyRoom {
     const memberIndex = this.members.findIndex(member => member.ws === ws)
     if (memberIndex === -1) {
       throw Error('user is not member of this party room')
+    }
+
+    if (this.isPaymentPhase) {
+      throw Error('this party is already payment phase')
     }
 
     const outMember = this.members[memberIndex]
@@ -162,6 +170,9 @@ export default class PartyRoom {
     }
     if (member.isReady) {
       throw Error('cannot add menu when ready state')
+    }
+    if (this.isPaymentPhase) {
+      throw Error('this party is already payment phase')
     }
 
     let cart: MenuInCart[]
@@ -234,6 +245,9 @@ export default class PartyRoom {
     if (member.isReady) {
       throw Error('cannot update menu when ready state')
     }
+    if (this.isPaymentPhase) {
+      throw Error('this party is already payment phase')
+    }
 
     let cart: MenuInCart[]
     if (isShared) {
@@ -283,6 +297,9 @@ export default class PartyRoom {
     }
     if (member.isReady) {
       throw Error('cannot delete menu when ready state')
+    }
+    if (this.isPaymentPhase) {
+      throw Error('this party is already payment phase')
     }
 
     let cart: MenuInCart[]
