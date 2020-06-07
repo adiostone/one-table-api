@@ -278,7 +278,9 @@ export default class InRoom extends State {
       const operation = 'notifyGoToPayment'
       const body: NotifyGoToPaymentBody = {
         menus: [],
-        deliveryCostPerCapita: partyRoom.restaurant.get('deliveryCost'),
+        deliveryCostPerCapita: Math.floor(
+          partyRoom.restaurant.get('deliveryCost') / partyRoom.size
+        ),
         totalPrice: 0
       }
 
