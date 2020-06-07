@@ -18,6 +18,10 @@ export interface Member {
   isHost: boolean
   isReady: boolean
   cart: MenuInCart[]
+  isNonF2F: boolean
+  nonF2FAddress: string
+  phoneNumber: string
+  request: string
 }
 
 export interface Chat {
@@ -60,7 +64,18 @@ export default class PartyRoom {
       title,
       address,
       capacity,
-      [{ ws: hostWS, isHost: true, isReady: false, cart: [] }],
+      [
+        {
+          ws: hostWS,
+          isHost: true,
+          isReady: false,
+          cart: [],
+          isNonF2F: false,
+          nonF2FAddress: '',
+          phoneNumber: '',
+          request: ''
+        }
+      ],
       [],
       [],
       false
@@ -114,7 +129,11 @@ export default class PartyRoom {
       ws: ws,
       isHost: false,
       isReady: false,
-      cart: []
+      cart: [],
+      isNonF2F: false,
+      nonF2FAddress: '',
+      phoneNumber: '',
+      request: ''
     }
     this.members.push(newMember)
     ws.roomID = this.id
@@ -380,5 +399,26 @@ export default class PartyRoom {
     }
 
     this.isPaymentPhase = true
+  }
+
+  public setAdditionalInfo(
+    ws: PartyWS,
+    isNonF2F: boolean,
+    nonF2FAddress: string,
+    phoneNumber: string,
+    request: string
+  ): void {
+    const member = this.getMember(ws.user.get('id'))
+    if (member === undefined) {
+      throw Error('user is not member of this party room')
+    }
+    if (this.isPaymentPhase) {
+      throw Error('this party is already payment phase')
+    }
+
+    member.isNonF2F = isNonF2F
+    member.nonF2FAddress = nonF2FAddress
+    member.phoneNumber = phoneNumber
+    member.request = request
   }
 }

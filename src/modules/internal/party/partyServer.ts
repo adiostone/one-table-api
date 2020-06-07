@@ -180,6 +180,17 @@ type ReplyGetSharedCartBody = {
   image: string
 }[]
 
+interface SetAdditionalInfoBody {
+  isNonF2F: boolean
+  nonF2FAddress?: string
+  phoneNumber: string
+  request?: string
+}
+
+interface ReplySetAdditionalInfoBody {
+  isSuccess: boolean
+}
+
 const partyServer = new WebSocket.Server({ noServer: true })
 export const partyRoomList: { [key: string]: PartyRoom } = {}
 
@@ -696,6 +707,30 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
     partyRoom.members.forEach(member => {
       member.ws.state.notifyGoToPayment(partyRoom)
     })
+  })
+
+  ws.on('setAdditionalInfo', (body: SetAdditionalInfoBody) => {
+    const partyRoom = partyRoomList[ws.roomID]
+    const replyOperation = 'replySetAdditionalInfo'
+    const replyBody: ReplySetAdditionalInfoBody = {
+      isSuccess: true
+    }
+
+    try {
+      partyRoom.setAdditionalInfo(
+        ws,
+        body.isNonF2F,
+        body.nonF2FAddress,
+        body.phoneNumber,
+        body.request
+      )
+    } catch (e) {
+      replyBody.isSuccess = false
+      ws.emit('sendPartyMessage', replyOperation, replyBody)
+      return
+    }
+
+    ws.emit('sendPartyMessage', replyOperation, replyBody)
   })
 })
 
