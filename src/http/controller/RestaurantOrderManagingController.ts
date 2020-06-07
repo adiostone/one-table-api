@@ -19,7 +19,7 @@ export default class RestaurantOrderManagingController {
     })
 
     orderManagingServer.handleUpgrade(req, req.socket, Buffer.from(''), ws => {
-      orderManagingServer.emit('connection', ws, req)
+      orderManagingServer.emit('connection', ws, req, restaurant)
     })
   }
 }
