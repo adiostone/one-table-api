@@ -5,6 +5,7 @@ import MyRestaurantController from '@/http/controller/MyRestaurantController'
 import MyMenuController from '@/http/controller/MyMenuController'
 import CheckMenuCategory from '@/http/middleware/CheckMenuCategory'
 import CheckMenu from '@/http/middleware/CheckMenu'
+import RestaurantOrderManagingController from '@/http/controller/RestaurantOrderManagingController'
 
 const restaurantRouter = express.Router()
 
@@ -21,6 +22,14 @@ restaurantRouter
   .post(MyRestaurantController.createRestaurant)
   .patch(CheckRestaurant.handler, MyRestaurantController.updateRestaurant)
   .delete(CheckRestaurant.handler, MyRestaurantController.deleteRestaurant)
+  .all(HttpErrorHandler.methodNotAllowedHandler)
+
+restaurantRouter
+  .route('/order-managing')
+  .get(
+    CheckRestaurant.handler,
+    RestaurantOrderManagingController.upgradeToWebSocket
+  )
   .all(HttpErrorHandler.methodNotAllowedHandler)
 
 restaurantRouter
