@@ -10,6 +10,7 @@ export interface MenuInCart {
   pricePerCapita: number
   name: string
   image: string
+  isSharing: boolean
 }
 
 export interface Member {
@@ -190,6 +191,10 @@ export default class PartyRoom {
       })
     ).toJSON() as Menu
 
+    if (menu.isSharing === false && isShared === true) {
+      throw Error('this menu is not possible to share')
+    }
+
     const unitPrice = menu.prices[0].price
     const totalPrice = unitPrice * quantity
     const menuInCart: MenuInCart = {
@@ -200,7 +205,8 @@ export default class PartyRoom {
         ? Math.floor(totalPrice / this.size)
         : totalPrice,
       name: menu.name,
-      image: menu.image
+      image: menu.image,
+      isSharing: menu.isSharing
     }
 
     cart.push(menuInCart)
@@ -244,6 +250,10 @@ export default class PartyRoom {
     // if the menu isn't exist in the cart
     if (menuInCart === undefined) {
       throw Error('this menu is not exist in the cart')
+    }
+
+    if (menuInCart.isSharing === false && isShared === true) {
+      throw Error('this menu is not possible to share')
     }
 
     menuInCart.quantity = quantity
