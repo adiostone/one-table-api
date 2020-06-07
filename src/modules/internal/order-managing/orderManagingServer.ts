@@ -2,6 +2,7 @@ import Restaurant from '@/models/Restaurant'
 import WebSocket from 'ws'
 import ms from 'ms'
 import { HttpRequest } from '@/http/HttpHandler'
+import PartyRoom from '@/modules/internal/party/PartyRoom'
 
 export interface OrderManagingWS extends WebSocket {
   isAlive: boolean
@@ -16,6 +17,42 @@ interface OrderManagingMessage {
 interface ErrorBody {
   errorOperation: string
   errorMessage: string
+}
+
+interface ByMenu {
+  menus: {
+    id: number
+    quantity: number
+    isShared: boolean
+    menuTotalPrice: number
+    name: string
+  }[]
+  totalPackagingCost: number
+  deliveryCost: number
+  totalNonF2FCost: number
+  totalPrice: number
+}
+
+interface NotifyNewOrderBody {
+  byCustomer: {
+    phoneNumber: string
+    isNonF2F: boolean
+    address: string
+    request: string
+    menus: {
+      id: number
+      quantity: number
+      isShared: boolean
+      pricePerCapita: number
+      name: string
+      packagingCost: number
+    }[]
+    deliveryCostPerCapita: number
+    nonF2FCost: number
+    totalPrice: number
+  }[]
+
+  byMenu: ByMenu
 }
 
 const orderManagingServer = new WebSocket.Server({ noServer: true })
@@ -104,6 +141,116 @@ orderManagingServer.on(
     ws.on('close', () => {
       ws.isAlive = false
       ws.close()
+    })
+
+    ws.on('notifyNewOrder', (partyRoom: PartyRoom) => {
+      const operation = 'notifyNewOrder'
+      const body: NotifyNewOrderBody = {
+        byCustomer: [],
+        byMenu: {} as ByMenu
+      }
+
+      /** by customer **/
+      let sharedMenuTotalPrice = 0
+      const sharedMenus = partyRoom.sharedCart.map(sharedMenu => {
+        sharedMenuTotalPrice +=
+          sharedMenu.pricePerCapita + partyRoom.restaurant.get('packagingCost')
+
+        return {
+          id: sharedMenu.id,
+          quantity: sharedMenu.quantity,
+          isShared: true,
+          pricePerCapita: sharedMenu.pricePerCapita,
+          name: sharedMenu.name,
+          packagingCost: partyRoom.restaurant.get('packagingCost')
+        }
+      })
+
+      for (const member of partyRoom.members) {
+        let privateMenuTotalPrice = 0
+        const privateMenus = member.cart.map(privateMenu => {
+          privateMenuTotalPrice += privateMenu.pricePerCapita
+
+          return {
+            id: privateMenu.id,
+            quantity: privateMenu.quantity,
+            isShared: false,
+            pricePerCapita: privateMenu.pricePerCapita,
+            name: privateMenu.name,
+            packagingCost: 0
+          }
+        })
+
+        const customerInfo = {
+          phoneNumber: member.phoneNumber,
+          isNonF2F: member.isNonF2F,
+          address: member.isNonF2F ? member.nonF2FAddress : partyRoom.address,
+          request: member.request,
+          menus: sharedMenus.concat(privateMenus),
+          deliveryCostPerCapita: Math.floor(
+            partyRoom.restaurant.get('deliveryCost') / partyRoom.size
+          ),
+          nonF2FCost: member.isNonF2F
+            ? partyRoom.restaurant.get('nonF2FCost')
+            : 0,
+          totalPrice: 0
+        }
+
+        customerInfo.totalPrice =
+          sharedMenuTotalPrice +
+          privateMenuTotalPrice +
+          customerInfo.deliveryCostPerCapita +
+          customerInfo.nonF2FCost
+
+        body.byCustomer.push(customerInfo)
+      }
+
+      /** by menu **/
+      body.byMenu.totalPackagingCost = 0
+      body.byMenu.deliveryCost = partyRoom.restaurant.get('deliveryCost')
+      body.byMenu.totalNonF2FCost = 0
+      body.byMenu.totalPrice = 0
+
+      body.byMenu.menus = []
+      for (const sharedMenu of partyRoom.sharedCart) {
+        body.byMenu.menus.push({
+          id: sharedMenu.id,
+          quantity: sharedMenu.quantity,
+          isShared: true,
+          menuTotalPrice: sharedMenu.quantity * sharedMenu.unitPrice,
+          name: sharedMenu.name
+        })
+
+        body.byMenu.totalPackagingCost +=
+          partyRoom.size * partyRoom.restaurant.get('packagingCost')
+
+        body.byMenu.totalPrice += sharedMenu.quantity * sharedMenu.unitPrice
+      }
+
+      for (const member of partyRoom.members) {
+        for (const privateMenu of member.cart) {
+          body.byMenu.menus.push({
+            id: privateMenu.id,
+            quantity: privateMenu.quantity,
+            isShared: false,
+            menuTotalPrice: privateMenu.pricePerCapita,
+            name: privateMenu.name
+          })
+
+          body.byMenu.totalPrice += privateMenu.pricePerCapita
+        }
+
+        body.byMenu.totalNonF2FCost += member.isNonF2F
+          ? partyRoom.restaurant.get('nonF2FCost')
+          : 0
+      }
+
+      body.byMenu.totalPrice +=
+        body.byMenu.totalPackagingCost +
+        body.byMenu.deliveryCost +
+        body.byMenu.totalNonF2FCost
+
+      ws.emit('sendMessage', operation, body)
     })
   }
 )
