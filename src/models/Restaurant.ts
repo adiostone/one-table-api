@@ -36,6 +36,21 @@ const schema = {
     defaultValue: 0,
     allowNull: false
   },
+  deliveryCost: {
+    type: DataTypes.SMALLINT.UNSIGNED,
+    defaultValue: 0,
+    allowNull: false
+  },
+  packagingCost: {
+    type: DataTypes.SMALLINT.UNSIGNED,
+    defaultValue: 0,
+    allowNull: false
+  },
+  nonF2FCost: {
+    type: DataTypes.SMALLINT.UNSIGNED,
+    defaultValue: 0,
+    allowNull: false
+  },
   phoneNumber: {
     type: DataTypes.STRING(20),
     allowNull: false
@@ -81,6 +96,9 @@ export default class Restaurant extends Model {
   public icon: string | null
   public category: string
   public minOrderPrice: number
+  public deliveryCost: number
+  public packagingCost: number
+  public nonF2FCost: number
   public phoneNumber: string
   public latitude: number
   public longitude: number
