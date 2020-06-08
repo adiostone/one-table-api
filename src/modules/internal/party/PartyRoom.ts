@@ -401,7 +401,7 @@ export default class PartyRoom {
     this.isPaymentPhase = true
   }
 
-  public setAdditionalInfo(
+  public setOrderInfo(
     ws: PartyWS,
     isNonF2F: boolean,
     nonF2FAddress: string,
