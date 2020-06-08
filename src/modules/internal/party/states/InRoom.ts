@@ -89,6 +89,10 @@ interface NotifyGoToPaymentBody {
   totalPrice: number
 }
 
+interface NotifyOrderIsAccepted {
+  estimatedTime: number
+}
+
 export default class InRoom extends State {
   public notifyNewParty(newPartyRoom: PartyRoom): void {
     // do nothing
@@ -314,6 +318,20 @@ export default class InRoom extends State {
         })
 
         body.totalPrice += privateMenu.pricePerCapita
+      }
+
+      this._ws.emit('sendPartyMessage', operation, body)
+    }
+  }
+
+  public notifyOrderIsAccepted(
+    partyRoom: PartyRoom,
+    estimatedTime: number
+  ): void {
+    if (this._ws.roomID === partyRoom.id) {
+      const operation = 'notifyOrderIsAccepted'
+      const body: NotifyOrderIsAccepted = {
+        estimatedTime: estimatedTime
       }
 
       this._ws.emit('sendPartyMessage', operation, body)

@@ -148,4 +148,11 @@ export default class NotInRoom extends State {
   public notifyGoToPayment(partyRoom: PartyRoom): void {
     // do nothing
   }
+
+  public notifyOrderIsAccepted(
+    partyRoom: PartyRoom,
+    estimatedTime: number
+  ): void {
+    // do nothing
+  }
 }

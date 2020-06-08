@@ -59,4 +59,9 @@ export default abstract class State {
   public abstract notifyRefreshTotalPrice(partyRoom: PartyRoom): void
 
   public abstract notifyGoToPayment(partyRoom: PartyRoom): void
+
+  public abstract notifyOrderIsAccepted(
+    partyRoom: PartyRoom,
+    estimatedTime: number
+  ): void
 }
