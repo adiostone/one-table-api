@@ -68,6 +68,14 @@ interface ReplyAcceptOrderBody {
   isSuccess: boolean
 }
 
+interface RefuseOrderBody {
+  id: string
+}
+
+interface ReplyRefuseOrderBody {
+  isSuccess: boolean
+}
+
 const orderManagingServer = new WebSocket.Server({ noServer: true })
 
 // repeatedly check heartbeat of each clients
@@ -295,6 +303,32 @@ orderManagingServer.on(
           order.partyRoom,
           body.estimatedTime
         )
+      })
+    })
+
+    ws.on('refuseOrder', (body: RefuseOrderBody) => {
+      const replyOperation = 'replyRefuseOrder'
+      const replyBody: ReplyRefuseOrderBody = {
+        isSuccess: true
+      }
+
+      // find order
+      const orderIndex = ws.orderQueue.findIndex(order => order.id === body.id)
+      if (orderIndex === -1) {
+        replyBody.isSuccess = false
+        ws.emit('sendMessage', replyOperation, replyBody)
+        return
+      }
+
+      const order = ws.orderQueue[orderIndex]
+
+      // remove order from order queue
+      ws.orderQueue.splice(orderIndex, 1)
+      ws.emit('sendMessage', replyOperation, replyBody)
+
+      // notify to customers
+      order.partyRoom.members.forEach(member => {
+        member.ws.state.notifyOrderIsRefused(order.partyRoom)
       })
     })
   }
