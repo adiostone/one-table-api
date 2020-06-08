@@ -401,7 +401,7 @@ export default class PartyRoom {
     this.isPaymentPhase = true
   }
 
-  public setAdditionalInfo(
+  public setOrderInfo(
     ws: PartyWS,
     isNonF2F: boolean,
     nonF2FAddress: string,
@@ -412,8 +412,8 @@ export default class PartyRoom {
     if (member === undefined) {
       throw Error('user is not member of this party room')
     }
-    if (this.isPaymentPhase) {
-      throw Error('this party is already payment phase')
+    if (!this.isPaymentPhase) {
+      throw Error('this party is not payment phase')
     }
 
     member.isNonF2F = isNonF2F

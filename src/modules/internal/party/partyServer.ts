@@ -180,14 +180,14 @@ type ReplyGetSharedCartBody = {
   image: string
 }[]
 
-interface SetAdditionalInfoBody {
+interface SetOrderInfoBody {
   isNonF2F: boolean
   nonF2FAddress?: string
   phoneNumber: string
   request?: string
 }
 
-interface ReplySetAdditionalInfoBody {
+interface ReplySetOrderInfoBody {
   isSuccess: boolean
 }
 
@@ -709,15 +709,15 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
     })
   })
 
-  ws.on('setAdditionalInfo', (body: SetAdditionalInfoBody) => {
+  ws.on('setOrderInfo', (body: SetOrderInfoBody) => {
     const partyRoom = partyRoomList[ws.roomID]
-    const replyOperation = 'replySetAdditionalInfo'
-    const replyBody: ReplySetAdditionalInfoBody = {
+    const replyOperation = 'replySetOrderInfo'
+    const replyBody: ReplySetOrderInfoBody = {
       isSuccess: true
     }
 
     try {
-      partyRoom.setAdditionalInfo(
+      partyRoom.setOrderInfo(
         ws,
         body.isNonF2F,
         body.nonF2FAddress,

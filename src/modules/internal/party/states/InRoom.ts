@@ -89,6 +89,10 @@ interface NotifyGoToPaymentBody {
   totalPrice: number
 }
 
+interface NotifyOrderIsAccepted {
+  estimatedTime: number
+}
+
 export default class InRoom extends State {
   public notifyNewParty(newPartyRoom: PartyRoom): void {
     // do nothing
@@ -317,6 +321,36 @@ export default class InRoom extends State {
       }
 
       this._ws.emit('sendPartyMessage', operation, body)
+    }
+  }
+
+  public notifyOrderIsAccepted(
+    partyRoom: PartyRoom,
+    estimatedTime: number
+  ): void {
+    if (this._ws.roomID === partyRoom.id) {
+      const operation = 'notifyOrderIsAccepted'
+      const body: NotifyOrderIsAccepted = {
+        estimatedTime: estimatedTime
+      }
+
+      this._ws.emit('sendPartyMessage', operation, body)
+    }
+  }
+
+  public notifyOrderIsRefused(partyRoom: PartyRoom): void {
+    if (this._ws.roomID === partyRoom.id) {
+      const operation = 'notifyOrderIsRefused'
+
+      this._ws.emit('sendPartyMessage', operation)
+    }
+  }
+
+  public notifyStartDelivery(partyRoom: PartyRoom): void {
+    if (this._ws.roomID === partyRoom.id) {
+      const operation = 'notifyStartDelivery'
+
+      this._ws.emit('sendPartyMessage', operation)
     }
   }
 }
