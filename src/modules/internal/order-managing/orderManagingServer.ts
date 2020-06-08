@@ -3,10 +3,12 @@ import WebSocket from 'ws'
 import ms from 'ms'
 import { HttpRequest } from '@/http/HttpHandler'
 import PartyRoom from '@/modules/internal/party/PartyRoom'
+import OrderInProgress from '@/modules/internal/order-managing/OrderInProgress'
 
 export interface OrderManagingWS extends WebSocket {
   isAlive: boolean
   restaurant: Restaurant
+  orderQueue: OrderInProgress[]
 }
 
 interface OrderManagingMessage {
@@ -52,6 +54,7 @@ interface ByMenu {
 }
 
 interface NotifyNewOrderBody {
+  id: string
   byCustomer: ByCustomer[]
   byMenu: ByMenu
 }
@@ -77,6 +80,7 @@ orderManagingServer.on(
     // initialize connection
     ws.isAlive = true
     ws.restaurant = restaurant
+    ws.orderQueue = []
 
     /* Register events */
 
@@ -145,9 +149,13 @@ orderManagingServer.on(
     })
 
     ws.on('notifyNewOrder', (partyRoom: PartyRoom) => {
+      const order = new OrderInProgress(partyRoom)
+      ws.orderQueue.push(order)
+
       const operation = 'notifyNewOrder'
       const body: NotifyNewOrderBody = {
-        byCustomer: [],
+        id: order.id,
+        byCustomer: [] as ByCustomer[],
         byMenu: {} as ByMenu
       }
 
