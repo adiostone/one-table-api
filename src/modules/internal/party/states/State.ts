@@ -64,4 +64,6 @@ export default abstract class State {
     partyRoom: PartyRoom,
     estimatedTime: number
   ): void
+
+  public abstract notifyOrderIsRefused(partyRoom: PartyRoom): void
 }
