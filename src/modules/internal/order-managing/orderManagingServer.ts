@@ -76,6 +76,14 @@ interface ReplyRefuseOrderBody {
   isSuccess: boolean
 }
 
+interface StartDeliveryBody {
+  id: string
+}
+
+interface ReplyStartDeliveryBody {
+  isSuccess: boolean
+}
+
 const orderManagingServer = new WebSocket.Server({ noServer: true })
 
 // repeatedly check heartbeat of each clients
@@ -329,6 +337,30 @@ orderManagingServer.on(
       // notify to customers
       order.partyRoom.members.forEach(member => {
         member.ws.state.notifyOrderIsRefused(order.partyRoom)
+      })
+    })
+
+    ws.on('startDelivery', (body: StartDeliveryBody) => {
+      const replyOperation = 'replyStartDelivery'
+      const replyBody: ReplyStartDeliveryBody = {
+        isSuccess: true
+      }
+
+      // find order
+      const order = ws.orderQueue.find(order => order.id === body.id)
+      if (order === undefined) {
+        replyBody.isSuccess = false
+        ws.emit('sendMessage', replyOperation, replyBody)
+        return
+      }
+
+      // order is completed and start delivery
+      order.status = OrderStatus.COMPLETED
+      ws.emit('sendMessage', replyOperation, replyBody)
+
+      // notify to customers
+      order.partyRoom.members.forEach(member => {
+        member.ws.state.notifyStartDelivery(order.partyRoom)
       })
     })
   }
