@@ -3,7 +3,9 @@ import WebSocket from 'ws'
 import ms from 'ms'
 import { HttpRequest } from '@/http/HttpHandler'
 import PartyRoom from '@/modules/internal/party/PartyRoom'
-import OrderInProgress from '@/modules/internal/order-managing/OrderInProgress'
+import OrderInProgress, {
+  OrderStatus
+} from '@/modules/internal/order-managing/OrderInProgress'
 
 export interface OrderManagingWS extends WebSocket {
   isAlive: boolean
@@ -302,7 +304,7 @@ orderManagingServer.on(
       }
 
       // accept
-      order.isAccepted = true
+      order.status = OrderStatus.ACCEPTED
       ws.emit('sendMessage', replyOperation, replyBody)
 
       // notify to customers

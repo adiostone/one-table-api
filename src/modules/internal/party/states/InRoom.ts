@@ -345,4 +345,12 @@ export default class InRoom extends State {
       this._ws.emit('sendPartyMessage', operation)
     }
   }
+
+  public notifyStartDelivery(partyRoom: PartyRoom): void {
+    if (this._ws.roomID === partyRoom.id) {
+      const operation = 'notifyStartDelivery'
+
+      this._ws.emit('sendPartyMessage', operation)
+    }
+  }
 }

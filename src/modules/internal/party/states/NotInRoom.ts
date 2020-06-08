@@ -159,4 +159,8 @@ export default class NotInRoom extends State {
   public notifyOrderIsRefused(partyRoom: PartyRoom): void {
     // do nothing
   }
+
+  public notifyStartDelivery(partyRoom: PartyRoom): void {
+    // do nothing
+  }
 }
