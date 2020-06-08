@@ -5,6 +5,7 @@ export default class OrderInProgress {
   public id: string
   public partyRoom: PartyRoom
   public orderedAt: Date
+  public isAccepted: boolean
 
   constructor(partyRoom: PartyRoom) {
     this.id = nanoid(11)

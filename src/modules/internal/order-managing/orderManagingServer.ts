@@ -59,6 +59,15 @@ interface NotifyNewOrderBody {
   byMenu: ByMenu
 }
 
+interface AcceptOrderBody {
+  id: string
+  estimatedTime: number
+}
+
+interface ReplyAcceptOrderBody {
+  isSuccess: boolean
+}
+
 const orderManagingServer = new WebSocket.Server({ noServer: true })
 
 // repeatedly check heartbeat of each clients
@@ -260,6 +269,33 @@ orderManagingServer.on(
         body.byMenu.totalNonF2FCost
 
       ws.emit('sendMessage', operation, body)
+    })
+
+    ws.on('acceptOrder', (body: AcceptOrderBody) => {
+      const replyOperation = 'replyAcceptOrder'
+      const replyBody: ReplyAcceptOrderBody = {
+        isSuccess: true
+      }
+
+      // find order
+      const order = ws.orderQueue.find(order => order.id === body.id)
+      if (order === undefined) {
+        replyBody.isSuccess = false
+        ws.emit('sendMessage', replyOperation, replyBody)
+        return
+      }
+
+      // accept
+      order.isAccepted = true
+      ws.emit('sendMessage', replyOperation, replyBody)
+
+      // notify to customers
+      order.partyRoom.members.forEach(member => {
+        member.ws.state.notifyOrderIsAccepted(
+          order.partyRoom,
+          body.estimatedTime
+        )
+      })
     })
   }
 )
