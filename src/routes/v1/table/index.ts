@@ -1,10 +1,7 @@
 import express from 'express'
 import authRouter from '@/routes/v1/table/auth'
 import meRouter from '@/routes/v1/table/me'
-import {
-  CheckUserSignIn,
-  CheckWebSocketSignIn
-} from '@/http/middleware/combinedMiddleware'
+import { CheckUserSignIn } from '@/http/middleware/combinedMiddleware'
 import TablePartyController from '@/http/controller/TablePartyController'
 import HttpErrorHandler from '@/http/middleware/HttpErrorHandler'
 import restaurantRouter from '@/routes/v1/table/restaurant'
@@ -20,7 +17,7 @@ tableRouter.use('/restaurants', CheckUserSignIn, restaurantRouter)
  */
 tableRouter
   .route('/party')
-  .get(CheckWebSocketSignIn, TablePartyController.upgradeToWebSocket)
+  .get(CheckUserSignIn, TablePartyController.upgradeToWebSocket)
   .all(HttpErrorHandler.methodNotAllowedHandler)
 
 export default tableRouter
