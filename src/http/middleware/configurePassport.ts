@@ -139,7 +139,10 @@ export default function configurePassport(): void {
     'jwt-access-restaurant',
     new JWTStrategy(
       {
-        jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+        jwtFromRequest: ExtractJwt.fromExtractors([
+          ExtractJwt.fromAuthHeaderAsBearerToken(),
+          ExtractJwt.fromUrlQueryParameter('access')
+        ]),
         secretOrKey: process.env.RT_JWT_SECRET_KEY,
         issuer: process.env.RT_JWT_ISSUER
       },
