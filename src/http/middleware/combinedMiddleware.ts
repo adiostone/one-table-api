@@ -6,14 +6,9 @@ const CheckUserSignIn = [
   CheckTokenBlacklist.handler
 ]
 
-const CheckWebSocketSignIn = [
-  passport.authenticate('jwt-access-table-query', { session: false }),
-  CheckTokenBlacklist.handler
-]
-
 const CheckOwnerSignIn = [
   passport.authenticate('jwt-access-restaurant', { session: false }),
   CheckTokenBlacklist.handler
 ]
 
-export { CheckUserSignIn, CheckWebSocketSignIn, CheckOwnerSignIn }
+export { CheckUserSignIn, CheckOwnerSignIn }
