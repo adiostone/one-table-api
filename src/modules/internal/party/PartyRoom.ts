@@ -504,12 +504,18 @@ export default class PartyRoom {
     }
   }
 
-  // public async cancelAllPayments(): Promise<void> {
-  //   if (!this.isPaymentPhase) {
-  //     throw Error('this party is not payment phase')
-  //   }
-  //   if (!this.members.every(member => member.isPaid)) {
-  //     throw Error('Every member must is paid')
-  //   }
-  // }
+  public async cancelAllPayments(): Promise<void> {
+    if (!this.isPaymentPhase) {
+      throw Error('this party is not payment phase')
+    }
+    if (!this.members.every(member => member.isPaid)) {
+      throw Error('Every member must is paid')
+    }
+
+    const cancelPromiseList = this.members.map(member => {
+      return iamport.cancelByMerchantUid(member.merchantUID)
+    })
+
+    await Promise.all(cancelPromiseList)
+  }
 }

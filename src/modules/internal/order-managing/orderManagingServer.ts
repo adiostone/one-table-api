@@ -326,6 +326,9 @@ orderManagingServer.on(
       order.partyRoom.members.forEach(member => {
         member.ws.state.notifyOrderIsRefused(order.partyRoom)
       })
+
+      // cancel all member's payments
+      order.partyRoom.cancelAllPayments().then()
     })
 
     ws.on('startDelivery', (body: StartDeliveryBody) => {
