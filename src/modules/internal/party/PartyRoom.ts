@@ -2,6 +2,7 @@ import { PartyWS } from '@/modules/internal/party/partyServer'
 import { nanoid } from 'nanoid'
 import Restaurant from '@/models/Restaurant'
 import Menu from '@/models/Menu'
+import { Iamport } from 'ts-iamport'
 
 export interface MenuInCart {
   id: number
@@ -31,6 +32,20 @@ export interface Chat {
   nickname: string
   chat: string
 }
+
+export interface PaymentInfo {
+  code: number
+  message: string
+  response: {
+    amount: number
+    status: string
+  }
+}
+
+const iamport = new Iamport(
+  process.env.IAMPORT_API_KEY,
+  process.env.IAMPORT_API_SECRET
+)
 
 export default class PartyRoom {
   public id: string
@@ -453,5 +468,32 @@ export default class PartyRoom {
       member.finalTotalPrice +
       (isNonF2F ? this.restaurant.get('nonF2FCost') : 0)
     )
+  }
+
+  public async verifyPayment(ws: PartyWS, merchantUID: string): Promise<void> {
+    const member = this.getMember(ws.user.get('id'))
+    if (member === undefined) {
+      throw Error('user is not member of this party room')
+    }
+    if (!this.isPaymentPhase) {
+      throw Error('this party is not payment phase')
+    }
+
+    const expectedPaymentAmount =
+      member.finalTotalPrice +
+      (member.isNonF2F ? this.restaurant.get('nonF2FCost') : 0)
+
+    const result = (await iamport.findByMerchantUid(merchantUID)) as PaymentInfo
+
+    if (
+      result.response.status === 'paid' &&
+      result.response.amount === expectedPaymentAmount
+    ) {
+      member.isPaid = true
+      member.finalTotalPrice = expectedPaymentAmount
+      this.finalTotalPrice += member.finalTotalPrice
+    } else {
+      throw Error('Fail to payment')
+    }
   }
 }
