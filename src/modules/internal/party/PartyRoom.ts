@@ -34,9 +34,9 @@ export interface Chat {
 }
 
 export interface PaymentInfo {
-  code: number
+  status: number
   message: string
-  response: {
+  data: {
     amount: number
     status: string
   }
@@ -486,8 +486,8 @@ export default class PartyRoom {
     const result = (await iamport.findByMerchantUid(merchantUID)) as PaymentInfo
 
     if (
-      result.response.status === 'paid' &&
-      result.response.amount === expectedPaymentAmount
+      result.data.status === 'paid' &&
+      result.data.amount === expectedPaymentAmount
     ) {
       member.isPaid = true
       member.finalTotalPrice = expectedPaymentAmount
