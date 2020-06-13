@@ -163,4 +163,11 @@ export default class NotInRoom extends State {
   public notifyStartDelivery(partyRoom: PartyRoom): void {
     // do nothing
   }
+
+  public notifyCompletePayment(
+    partyRoom: PartyRoom,
+    completeMember: Member
+  ): void {
+    // do nothing
+  }
 }
