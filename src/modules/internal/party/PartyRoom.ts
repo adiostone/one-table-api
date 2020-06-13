@@ -2,6 +2,7 @@ import { PartyWS } from '@/modules/internal/party/partyServer'
 import { nanoid } from 'nanoid'
 import Restaurant from '@/models/Restaurant'
 import Menu from '@/models/Menu'
+import { Iamport } from 'ts-iamport'
 
 export interface MenuInCart {
   id: number
@@ -22,6 +23,8 @@ export interface Member {
   nonF2FAddress: string
   phoneNumber: string
   request: string
+  finalTotalPrice: number
+  isPaid: boolean
 }
 
 export interface Chat {
@@ -29,6 +32,20 @@ export interface Chat {
   nickname: string
   chat: string
 }
+
+export interface PaymentInfo {
+  code: number
+  message: string
+  response: {
+    amount: number
+    status: string
+  }
+}
+
+const iamport = new Iamport(
+  process.env.IAMPORT_API_KEY,
+  process.env.IAMPORT_API_SECRET
+)
 
 export default class PartyRoom {
   public id: string
@@ -40,6 +57,7 @@ export default class PartyRoom {
   public chats: Chat[]
   public sharedCart: MenuInCart[]
   public isPaymentPhase: boolean
+  public finalTotalPrice: number
 
   public async createParty(
     restaurantID: number,
@@ -57,7 +75,8 @@ export default class PartyRoom {
       this.members,
       this.chats,
       this.sharedCart,
-      this.isPaymentPhase
+      this.isPaymentPhase,
+      this.finalTotalPrice
     ] = [
       nanoid(12),
       await Restaurant.findByPk(restaurantID),
@@ -73,12 +92,15 @@ export default class PartyRoom {
           isNonF2F: false,
           nonF2FAddress: '',
           phoneNumber: '',
-          request: ''
+          request: '',
+          finalTotalPrice: 0,
+          isPaid: false
         }
       ],
       [],
       [],
-      false
+      false,
+      0
     ]
 
     hostWS.roomID = this.id
@@ -133,7 +155,9 @@ export default class PartyRoom {
       isNonF2F: false,
       nonF2FAddress: '',
       phoneNumber: '',
-      request: ''
+      request: '',
+      finalTotalPrice: 0,
+      isPaid: false
     }
     this.members.push(newMember)
     ws.roomID = this.id
@@ -399,15 +423,34 @@ export default class PartyRoom {
     }
 
     this.isPaymentPhase = true
+
+    let sharedCartPricePerCapita = 0
+    for (const sharedMenu of this.sharedCart) {
+      sharedCartPricePerCapita +=
+        sharedMenu.pricePerCapita + this.restaurant.get('packagingCost')
+    }
+
+    for (const member of this.members) {
+      let privateCartPricePerCapita = 0
+
+      for (const privateMenu of member.cart) {
+        privateCartPricePerCapita += privateMenu.pricePerCapita
+      }
+
+      member.finalTotalPrice =
+        sharedCartPricePerCapita +
+        privateCartPricePerCapita +
+        Math.floor(this.restaurant.get('deliveryCost') / this.size)
+    }
   }
 
-  public setOrderInfo(
+  public getReadyPayment(
     ws: PartyWS,
     isNonF2F: boolean,
     nonF2FAddress: string,
     phoneNumber: string,
     request: string
-  ): void {
+  ): number {
     const member = this.getMember(ws.user.get('id'))
     if (member === undefined) {
       throw Error('user is not member of this party room')
@@ -420,5 +463,37 @@ export default class PartyRoom {
     member.nonF2FAddress = nonF2FAddress
     member.phoneNumber = phoneNumber
     member.request = request
+
+    return (
+      member.finalTotalPrice +
+      (isNonF2F ? this.restaurant.get('nonF2FCost') : 0)
+    )
+  }
+
+  public async verifyPayment(ws: PartyWS, merchantUID: string): Promise<void> {
+    const member = this.getMember(ws.user.get('id'))
+    if (member === undefined) {
+      throw Error('user is not member of this party room')
+    }
+    if (!this.isPaymentPhase) {
+      throw Error('this party is not payment phase')
+    }
+
+    const expectedPaymentAmount =
+      member.finalTotalPrice +
+      (member.isNonF2F ? this.restaurant.get('nonF2FCost') : 0)
+
+    const result = (await iamport.findByMerchantUid(merchantUID)) as PaymentInfo
+
+    if (
+      result.response.status === 'paid' &&
+      result.response.amount === expectedPaymentAmount
+    ) {
+      member.isPaid = true
+      member.finalTotalPrice = expectedPaymentAmount
+      this.finalTotalPrice += member.finalTotalPrice
+    } else {
+      throw Error('Fail to payment')
+    }
   }
 }

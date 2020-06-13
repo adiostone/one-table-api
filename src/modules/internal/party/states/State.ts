@@ -68,4 +68,9 @@ export default abstract class State {
   public abstract notifyOrderIsRefused(partyRoom: PartyRoom): void
 
   public abstract notifyStartDelivery(partyRoom: PartyRoom): void
+
+  public abstract notifyCompletePayment(
+    partyRoom: PartyRoom,
+    completeMember: Member
+  ): void
 }

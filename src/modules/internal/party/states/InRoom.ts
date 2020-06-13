@@ -72,7 +72,7 @@ type NotifyRefreshSharedCartBody = {
   image: string
 }[]
 
-interface NotifyRefreshTotalPrice {
+interface NotifyRefreshTotalPriceBody {
   totalPrice: number
 }
 
@@ -89,8 +89,12 @@ interface NotifyGoToPaymentBody {
   totalPrice: number
 }
 
-interface NotifyOrderIsAccepted {
+interface NotifyOrderIsAcceptedBody {
   estimatedTime: number
+}
+
+interface NotifyCompletePaymentBody {
+  id: string
 }
 
 export default class InRoom extends State {
@@ -269,7 +273,7 @@ export default class InRoom extends State {
   public notifyRefreshTotalPrice(partyRoom: PartyRoom): void {
     if (this._ws.roomID === partyRoom.id) {
       const operation = 'notifyRefreshTotalPrice'
-      const body: NotifyRefreshTotalPrice = {
+      const body: NotifyRefreshTotalPriceBody = {
         totalPrice: partyRoom.totalPrice
       }
 
@@ -298,9 +302,6 @@ export default class InRoom extends State {
           name: sharedMenu.name,
           packagingCost: partyRoom.restaurant.get('packagingCost')
         })
-
-        body.totalPrice +=
-          sharedMenu.pricePerCapita + partyRoom.restaurant.get('packagingCost')
       }
 
       const currMember = partyRoom.members.find(
@@ -316,9 +317,9 @@ export default class InRoom extends State {
           name: privateMenu.name,
           packagingCost: 0
         })
-
-        body.totalPrice += privateMenu.pricePerCapita
       }
+
+      body.totalPrice = currMember.finalTotalPrice
 
       this._ws.emit('sendPartyMessage', operation, body)
     }
@@ -330,7 +331,7 @@ export default class InRoom extends State {
   ): void {
     if (this._ws.roomID === partyRoom.id) {
       const operation = 'notifyOrderIsAccepted'
-      const body: NotifyOrderIsAccepted = {
+      const body: NotifyOrderIsAcceptedBody = {
         estimatedTime: estimatedTime
       }
 
@@ -351,6 +352,20 @@ export default class InRoom extends State {
       const operation = 'notifyStartDelivery'
 
       this._ws.emit('sendPartyMessage', operation)
+    }
+  }
+
+  public notifyCompletePayment(
+    partyRoom: PartyRoom,
+    completeMember: Member
+  ): void {
+    if (this._ws.roomID === partyRoom.id) {
+      const operation = 'notifyCompletePayment'
+      const body: NotifyCompletePaymentBody = {
+        id: completeMember.ws.user.get('id')
+      }
+
+      this._ws.emit('sendPartyMessage', operation, body)
     }
   }
 }

@@ -57,6 +57,7 @@ interface ByMenu {
 
 interface NotifyNewOrderBody {
   id: string
+  orderedAt: Date
   byCustomer: ByCustomer[]
   byMenu: ByMenu
 }
@@ -182,16 +183,13 @@ orderManagingServer.on(
       const operation = 'notifyNewOrder'
       const body: NotifyNewOrderBody = {
         id: order.id,
+        orderedAt: order.orderedAt,
         byCustomer: [] as ByCustomer[],
         byMenu: {} as ByMenu
       }
 
       /** by customer **/
-      let sharedMenuTotalPrice = 0
       const sharedMenus = partyRoom.sharedCart.map(sharedMenu => {
-        sharedMenuTotalPrice +=
-          sharedMenu.pricePerCapita + partyRoom.restaurant.get('packagingCost')
-
         return {
           id: sharedMenu.id,
           quantity: sharedMenu.quantity,
@@ -203,10 +201,7 @@ orderManagingServer.on(
       })
 
       for (const member of partyRoom.members) {
-        let privateMenuTotalPrice = 0
         const privateMenus = member.cart.map(privateMenu => {
-          privateMenuTotalPrice += privateMenu.pricePerCapita
-
           return {
             id: privateMenu.id,
             quantity: privateMenu.quantity,
@@ -217,7 +212,7 @@ orderManagingServer.on(
           }
         })
 
-        const customerInfo = {
+        body.byCustomer.push({
           phoneNumber: member.phoneNumber,
           isNonF2F: member.isNonF2F,
           address: member.isNonF2F ? member.nonF2FAddress : partyRoom.address,
@@ -229,23 +224,15 @@ orderManagingServer.on(
           nonF2FCost: member.isNonF2F
             ? partyRoom.restaurant.get('nonF2FCost')
             : 0,
-          totalPrice: 0
-        }
-
-        customerInfo.totalPrice =
-          sharedMenuTotalPrice +
-          privateMenuTotalPrice +
-          customerInfo.deliveryCostPerCapita +
-          customerInfo.nonF2FCost
-
-        body.byCustomer.push(customerInfo)
+          totalPrice: member.finalTotalPrice
+        })
       }
 
       /** by menu **/
       body.byMenu.totalPackagingCost = 0
       body.byMenu.deliveryCost = partyRoom.restaurant.get('deliveryCost')
       body.byMenu.totalNonF2FCost = 0
-      body.byMenu.totalPrice = 0
+      body.byMenu.totalPrice = partyRoom.finalTotalPrice
 
       body.byMenu.menus = []
       for (const sharedMenu of partyRoom.sharedCart) {
@@ -259,8 +246,6 @@ orderManagingServer.on(
 
         body.byMenu.totalPackagingCost +=
           partyRoom.size * partyRoom.restaurant.get('packagingCost')
-
-        body.byMenu.totalPrice += sharedMenu.quantity * sharedMenu.unitPrice
       }
 
       for (const member of partyRoom.members) {
@@ -272,19 +257,12 @@ orderManagingServer.on(
             menuTotalPrice: privateMenu.pricePerCapita,
             name: privateMenu.name
           })
-
-          body.byMenu.totalPrice += privateMenu.pricePerCapita
         }
 
         body.byMenu.totalNonF2FCost += member.isNonF2F
           ? partyRoom.restaurant.get('nonF2FCost')
           : 0
       }
-
-      body.byMenu.totalPrice +=
-        body.byMenu.totalPackagingCost +
-        body.byMenu.deliveryCost +
-        body.byMenu.totalNonF2FCost
 
       ws.emit('sendMessage', operation, body)
     })
