@@ -298,9 +298,6 @@ export default class InRoom extends State {
           name: sharedMenu.name,
           packagingCost: partyRoom.restaurant.get('packagingCost')
         })
-
-        body.totalPrice +=
-          sharedMenu.pricePerCapita + partyRoom.restaurant.get('packagingCost')
       }
 
       const currMember = partyRoom.members.find(
@@ -316,9 +313,9 @@ export default class InRoom extends State {
           name: privateMenu.name,
           packagingCost: 0
         })
-
-        body.totalPrice += privateMenu.pricePerCapita
       }
+
+      body.totalPrice = currMember.finalTotalPrice
 
       this._ws.emit('sendPartyMessage', operation, body)
     }

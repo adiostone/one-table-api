@@ -180,14 +180,18 @@ type ReplyGetSharedCartBody = {
   image: string
 }[]
 
-interface SetOrderInfoBody {
+interface GetReadyPaymentBody {
   isNonF2F: boolean
   nonF2FAddress?: string
   phoneNumber: string
   request?: string
 }
 
-interface ReplySetOrderInfoBody {
+interface ReplyGetReadyPaymentBody {
+  isSuccess: boolean
+  finalTotalPrice: number
+}
+
   isSuccess: boolean
 }
 
@@ -709,15 +713,17 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
     })
   })
 
-  ws.on('setOrderInfo', (body: SetOrderInfoBody) => {
+  ws.on('getReadyPayment', (body: GetReadyPaymentBody) => {
     const partyRoom = partyRoomList[ws.roomID]
     const replyOperation = 'replySetOrderInfo'
-    const replyBody: ReplySetOrderInfoBody = {
-      isSuccess: true
+    const replyBody: ReplyGetReadyPaymentBody = {
+      isSuccess: true,
+      finalTotalPrice: 0
     }
 
+    let finalTotalPrice = 0
     try {
-      partyRoom.setOrderInfo(
+      finalTotalPrice = partyRoom.getReadyPayment(
         ws,
         body.isNonF2F,
         body.nonF2FAddress,
@@ -730,6 +736,7 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
       return
     }
 
+    replyBody.finalTotalPrice = finalTotalPrice
     ws.emit('sendPartyMessage', replyOperation, replyBody)
   })
 })
