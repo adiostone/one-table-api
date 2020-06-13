@@ -774,7 +774,9 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
               orderWS.restaurant.get('id') === partyRoom.restaurant.get('id')
           )
 
-          orderManagingWS.emit('notifyNewOrder', partyRoom)
+          if (orderManagingWS !== undefined) {
+            orderManagingWS.emit('notifyNewOrder', partyRoom)
+          }
         }
       })
       .catch(() => {

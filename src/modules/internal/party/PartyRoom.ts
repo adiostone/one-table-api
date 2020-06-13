@@ -478,6 +478,9 @@ export default class PartyRoom {
     if (!this.isPaymentPhase) {
       throw Error('this party is not payment phase')
     }
+    if (member.isPaid) {
+      throw Error('Already paid about this order')
+    }
 
     const expectedPaymentAmount =
       member.finalTotalPrice +
