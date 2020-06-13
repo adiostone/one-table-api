@@ -22,6 +22,8 @@ export interface Member {
   nonF2FAddress: string
   phoneNumber: string
   request: string
+  finalTotalPrice: number
+  isPaid: boolean
 }
 
 export interface Chat {
@@ -40,6 +42,7 @@ export default class PartyRoom {
   public chats: Chat[]
   public sharedCart: MenuInCart[]
   public isPaymentPhase: boolean
+  public finalTotalPrice: number
 
   public async createParty(
     restaurantID: number,
@@ -57,7 +60,8 @@ export default class PartyRoom {
       this.members,
       this.chats,
       this.sharedCart,
-      this.isPaymentPhase
+      this.isPaymentPhase,
+      this.finalTotalPrice
     ] = [
       nanoid(12),
       await Restaurant.findByPk(restaurantID),
@@ -73,12 +77,15 @@ export default class PartyRoom {
           isNonF2F: false,
           nonF2FAddress: '',
           phoneNumber: '',
-          request: ''
+          request: '',
+          finalTotalPrice: 0,
+          isPaid: false
         }
       ],
       [],
       [],
-      false
+      false,
+      0
     ]
 
     hostWS.roomID = this.id
@@ -133,7 +140,9 @@ export default class PartyRoom {
       isNonF2F: false,
       nonF2FAddress: '',
       phoneNumber: '',
-      request: ''
+      request: '',
+      finalTotalPrice: 0,
+      isPaid: false
     }
     this.members.push(newMember)
     ws.roomID = this.id
@@ -399,15 +408,34 @@ export default class PartyRoom {
     }
 
     this.isPaymentPhase = true
+
+    let sharedCartPricePerCapita = 0
+    for (const sharedMenu of this.sharedCart) {
+      sharedCartPricePerCapita +=
+        sharedMenu.pricePerCapita + this.restaurant.get('packagingCost')
+    }
+
+    for (const member of this.members) {
+      let privateCartPricePerCapita = 0
+
+      for (const privateMenu of member.cart) {
+        privateCartPricePerCapita += privateMenu.pricePerCapita
+      }
+
+      member.finalTotalPrice =
+        sharedCartPricePerCapita +
+        privateCartPricePerCapita +
+        Math.floor(this.restaurant.get('deliveryCost') / this.size)
+    }
   }
 
-  public setOrderInfo(
+  public getReadyPayment(
     ws: PartyWS,
     isNonF2F: boolean,
     nonF2FAddress: string,
     phoneNumber: string,
     request: string
-  ): void {
+  ): number {
     const member = this.getMember(ws.user.get('id'))
     if (member === undefined) {
       throw Error('user is not member of this party room')
@@ -420,5 +448,12 @@ export default class PartyRoom {
     member.nonF2FAddress = nonF2FAddress
     member.phoneNumber = phoneNumber
     member.request = request
+
+    if (isNonF2F) {
+      member.finalTotalPrice += this.restaurant.get('nonF2FCost')
+    }
+
+    this.finalTotalPrice += member.finalTotalPrice
+    return member.finalTotalPrice
   }
 }
