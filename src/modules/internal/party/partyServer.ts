@@ -724,7 +724,7 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
 
   ws.on('getReadyPayment', (body: GetReadyPaymentBody) => {
     const partyRoom = partyRoomList[ws.roomID]
-    const replyOperation = 'replySetOrderInfo'
+    const replyOperation = 'replyGetReadyPayment'
     const replyBody: ReplyGetReadyPaymentBody = {
       isSuccess: true,
       finalTotalPrice: 0
