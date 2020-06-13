@@ -449,11 +449,9 @@ export default class PartyRoom {
     member.phoneNumber = phoneNumber
     member.request = request
 
-    if (isNonF2F) {
-      member.finalTotalPrice += this.restaurant.get('nonF2FCost')
-    }
-
-    this.finalTotalPrice += member.finalTotalPrice
-    return member.finalTotalPrice
+    return (
+      member.finalTotalPrice +
+      (isNonF2F ? this.restaurant.get('nonF2FCost') : 0)
+    )
   }
 }
