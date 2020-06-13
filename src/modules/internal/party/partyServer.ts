@@ -775,7 +775,7 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
 
         partyRoom.members.forEach(member => {
           if (member !== currMember && member.isPaid === true) {
-            ws.state.notifyCompletePayment(partyRoom, currMember)
+            member.ws.state.notifyCompletePayment(partyRoom, currMember)
           }
         })
 
