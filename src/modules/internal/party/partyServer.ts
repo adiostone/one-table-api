@@ -11,6 +11,9 @@ import PartyRoom, {
 import State from '@/modules/internal/party/states/State'
 import NotInRoom from '@/modules/internal/party/states/NotInRoom'
 import InRoom from '@/modules/internal/party/states/InRoom'
+import orderManagingServer, {
+  OrderManagingWS
+} from '@/modules/internal/order-managing/orderManagingServer'
 
 export interface PartyWS extends WebSocket {
   isAlive: boolean
@@ -192,6 +195,12 @@ interface ReplyGetReadyPaymentBody {
   finalTotalPrice: number
 }
 
+interface VerifyPayment {
+  impUID: string
+  merchantUID: string
+}
+
+interface ReplyVerifyPayment {
   isSuccess: boolean
 }
 
@@ -738,6 +747,40 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
 
     replyBody.finalTotalPrice = finalTotalPrice
     ws.emit('sendPartyMessage', replyOperation, replyBody)
+  })
+
+  ws.on('verifyPayment', (body: VerifyPayment) => {
+    const partyRoom = partyRoomList[ws.roomID]
+    const currMember = partyRoom.getMember(ws.user.get('id'))
+    const replyOperation = 'replyVerifyPayment'
+    const replyBody: ReplyVerifyPayment = {
+      isSuccess: true
+    }
+
+    partyRoom
+      .verifyPayment(ws, body.merchantUID)
+      .then(() => {
+        ws.emit('sendPartyMessage', replyOperation, replyBody)
+
+        partyRoom.members.forEach(member => {
+          if (member !== currMember && member.isPaid === true) {
+            ws.state.notifyCompletePayment(partyRoom, currMember)
+          }
+        })
+
+        if (partyRoom.members.every(member => member.isPaid)) {
+          const orderManagingWS = Array.from(orderManagingServer.clients).find(
+            (orderWS: OrderManagingWS) =>
+              orderWS.restaurant.get('id') === partyRoom.restaurant.get('id')
+          )
+
+          orderManagingWS.emit('notifyNewOrder', partyRoom)
+        }
+      })
+      .catch(() => {
+        replyBody.isSuccess = false
+        ws.emit('sendPartyMessage', replyOperation, replyBody)
+      })
   })
 })
 
