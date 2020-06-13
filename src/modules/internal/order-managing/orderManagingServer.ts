@@ -69,6 +69,7 @@ interface AcceptOrderBody {
 
 interface ReplyAcceptOrderBody {
   isSuccess: boolean
+  id: string
 }
 
 interface RefuseOrderBody {
@@ -77,6 +78,7 @@ interface RefuseOrderBody {
 
 interface ReplyRefuseOrderBody {
   isSuccess: boolean
+  id: string
 }
 
 interface StartDeliveryBody {
@@ -85,6 +87,7 @@ interface StartDeliveryBody {
 
 interface ReplyStartDeliveryBody {
   isSuccess: boolean
+  id: string
 }
 
 const orderManagingServer = new WebSocket.Server({ noServer: true })
@@ -270,7 +273,8 @@ orderManagingServer.on(
     ws.on('acceptOrder', (body: AcceptOrderBody) => {
       const replyOperation = 'replyAcceptOrder'
       const replyBody: ReplyAcceptOrderBody = {
-        isSuccess: true
+        isSuccess: true,
+        id: ''
       }
 
       // find order
@@ -280,6 +284,8 @@ orderManagingServer.on(
         ws.emit('sendMessage', replyOperation, replyBody)
         return
       }
+
+      replyBody.id = order.id
 
       // accept
       order.status = OrderStatus.ACCEPTED
@@ -297,7 +303,8 @@ orderManagingServer.on(
     ws.on('refuseOrder', (body: RefuseOrderBody) => {
       const replyOperation = 'replyRefuseOrder'
       const replyBody: ReplyRefuseOrderBody = {
-        isSuccess: true
+        isSuccess: true,
+        id: ''
       }
 
       // find order
@@ -309,6 +316,7 @@ orderManagingServer.on(
       }
 
       const order = ws.orderQueue[orderIndex]
+      replyBody.id = order.id
 
       // remove order from order queue
       ws.orderQueue.splice(orderIndex, 1)
@@ -323,7 +331,8 @@ orderManagingServer.on(
     ws.on('startDelivery', (body: StartDeliveryBody) => {
       const replyOperation = 'replyStartDelivery'
       const replyBody: ReplyStartDeliveryBody = {
-        isSuccess: true
+        isSuccess: true,
+        id: ''
       }
 
       // find order
@@ -333,6 +342,8 @@ orderManagingServer.on(
         ws.emit('sendMessage', replyOperation, replyBody)
         return
       }
+
+      replyBody.id = order.id
 
       // order is completed and start delivery
       order.status = OrderStatus.COMPLETED

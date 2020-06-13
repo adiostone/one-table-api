@@ -202,6 +202,10 @@ interface VerifyPayment {
 
 interface ReplyVerifyPayment {
   isSuccess: boolean
+  isPaidList: {
+    id: string
+    isPaid: boolean
+  }[]
 }
 
 const partyServer = new WebSocket.Server({ noServer: true })
@@ -754,12 +758,19 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
     const currMember = partyRoom.getMember(ws.user.get('id'))
     const replyOperation = 'replyVerifyPayment'
     const replyBody: ReplyVerifyPayment = {
-      isSuccess: true
+      isSuccess: true,
+      isPaidList: []
     }
 
     partyRoom
       .verifyPayment(ws, body.merchantUID)
       .then(() => {
+        replyBody.isPaidList = partyRoom.members.map(member => {
+          return {
+            id: member.ws.user.get('id'),
+            isPaid: member.isPaid
+          }
+        })
         ws.emit('sendPartyMessage', replyOperation, replyBody)
 
         partyRoom.members.forEach(member => {

@@ -25,6 +25,7 @@ export interface Member {
   request: string
   finalTotalPrice: number
   isPaid: boolean
+  merchantUID: string
 }
 
 export interface Chat {
@@ -94,7 +95,8 @@ export default class PartyRoom {
           phoneNumber: '',
           request: '',
           finalTotalPrice: 0,
-          isPaid: false
+          isPaid: false,
+          merchantUID: ''
         }
       ],
       [],
@@ -157,7 +159,8 @@ export default class PartyRoom {
       phoneNumber: '',
       request: '',
       finalTotalPrice: 0,
-      isPaid: false
+      isPaid: false,
+      merchantUID: ''
     }
     this.members.push(newMember)
     ws.roomID = this.id
@@ -492,11 +495,21 @@ export default class PartyRoom {
       result.data.status === 'paid' &&
       result.data.amount === expectedPaymentAmount
     ) {
-      member.isPaid = true
       member.finalTotalPrice = expectedPaymentAmount
+      member.isPaid = true
+      member.merchantUID = merchantUID
       this.finalTotalPrice += member.finalTotalPrice
     } else {
       throw Error('Fail to payment')
     }
   }
+
+  // public async cancelAllPayments(): Promise<void> {
+  //   if (!this.isPaymentPhase) {
+  //     throw Error('this party is not payment phase')
+  //   }
+  //   if (!this.members.every(member => member.isPaid)) {
+  //     throw Error('Every member must is paid')
+  //   }
+  // }
 }
