@@ -57,6 +57,7 @@ interface ByMenu {
 
 interface NotifyNewOrderBody {
   id: string
+  orderedAt: Date
   byCustomer: ByCustomer[]
   byMenu: ByMenu
 }
@@ -182,6 +183,7 @@ orderManagingServer.on(
       const operation = 'notifyNewOrder'
       const body: NotifyNewOrderBody = {
         id: order.id,
+        orderedAt: order.orderedAt,
         byCustomer: [] as ByCustomer[],
         byMenu: {} as ByMenu
       }
