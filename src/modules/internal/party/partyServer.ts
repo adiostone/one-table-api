@@ -195,17 +195,21 @@ interface ReplyGetReadyPaymentBody {
   finalTotalPrice: number
 }
 
-interface VerifyPayment {
+interface VerifyPaymentBody {
   impUID: string
   merchantUID: string
 }
 
-interface ReplyVerifyPayment {
+interface ReplyVerifyPaymentBody {
   isSuccess: boolean
   isPaidList: {
     id: string
     isPaid: boolean
   }[]
+}
+
+interface ReplyReceiveDeliveryBody {
+  isSuccess: boolean
 }
 
 const partyServer = new WebSocket.Server({ noServer: true })
@@ -753,11 +757,11 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
     ws.emit('sendPartyMessage', replyOperation, replyBody)
   })
 
-  ws.on('verifyPayment', (body: VerifyPayment) => {
+  ws.on('verifyPayment', (body: VerifyPaymentBody) => {
     const partyRoom = partyRoomList[ws.roomID]
     const currMember = partyRoom.getMember(ws.user.get('id'))
     const replyOperation = 'replyVerifyPayment'
-    const replyBody: ReplyVerifyPayment = {
+    const replyBody: ReplyVerifyPaymentBody = {
       isSuccess: true,
       isPaidList: []
     }
@@ -794,6 +798,34 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
         replyBody.isSuccess = false
         ws.emit('sendPartyMessage', replyOperation, replyBody)
       })
+  })
+
+  ws.on('receiveDelivery', () => {
+    const partyRoom = partyRoomList[ws.roomID]
+    const replyOperation = 'replyReceiveDelivery'
+    const replyBody: ReplyReceiveDeliveryBody = {
+      isSuccess: true
+    }
+
+    let receiveMember: Member
+    try {
+      receiveMember = partyRoom.receiveDelivery(ws)
+    } catch (e) {
+      replyBody.isSuccess = false
+      ws.emit('sendPartyMessage', replyOperation, replyBody)
+    }
+
+    // if there are no longer members, delete party
+    if (partyRoom.size === 0) {
+      delete partyRoomList[partyRoom.id]
+    } else {
+      partyRoom.members.forEach(member => {
+        member.ws.state.notifyMemberReceiveDelivery(partyRoom, receiveMember)
+      })
+    }
+
+    transitionTo(ws, new NotInRoom())
+    ws.emit('sendPartyMessage', replyOperation, replyBody)
   })
 })
 
