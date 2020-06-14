@@ -11,6 +11,7 @@ import {
   transitionTo
 } from '@/modules/internal/party/partyServer'
 import NotInRoom from '@/modules/internal/party/states/NotInRoom'
+import Push from '@/modules/notification/Push'
 
 export interface OrderManagingWS extends WebSocket {
   isAlive: boolean
@@ -297,12 +298,22 @@ orderManagingServer.on(
       ws.emit('sendMessage', replyOperation, replyBody)
 
       // notify to customers
+      const push = new Push()
       order.partyRoom.members.forEach(member => {
-        member.ws.state.notifyOrderIsAccepted(
-          order.partyRoom,
-          body.estimatedTime
-        )
+        if (member.ws.user.get('pushToken')) {
+          push.addToMessageQueue({
+            to: member.ws.user.get('pushToken'),
+            title: '🎉🎉🎉 주문이 접수되었어요!',
+            body: `${body.estimatedTime}분 후에 도착 예정이에요.`
+          })
+        } else {
+          member.ws.state.notifyOrderIsAccepted(
+            order.partyRoom,
+            body.estimatedTime
+          )
+        }
       })
+      push.sendPushMessages().then()
     })
 
     ws.on('refuseOrder', (body: RefuseOrderBody) => {
@@ -332,10 +343,20 @@ orderManagingServer.on(
         delete partyRoomList[order.partyRoom.id]
 
         // notify to customers
+        const push = new Push()
         order.partyRoom.members.forEach(member => {
           transitionTo(member.ws, new NotInRoom())
-          member.ws.state.notifyOrderIsRefused(order.partyRoom)
+
+          if (member.ws.user.get('pushToken')) {
+            push.addToMessageQueue({
+              to: member.ws.user.get('pushToken'),
+              title: '😭 주문이 취소되었어요 ㅠ'
+            })
+          } else {
+            member.ws.state.notifyOrderIsRefused(order.partyRoom)
+          }
         })
+        push.sendPushMessages().then()
       })
     })
 
@@ -361,9 +382,19 @@ orderManagingServer.on(
       ws.emit('sendMessage', replyOperation, replyBody)
 
       // notify to customers
+      const push = new Push()
       order.partyRoom.members.forEach(member => {
-        member.ws.state.notifyStartDelivery(order.partyRoom)
+        if (member.ws.user.get('pushToken')) {
+          push.addToMessageQueue({
+            to: member.ws.user.get('pushToken'),
+            title: '🛵 드디어 배달 출발~~!',
+            body: '대면 수령일 시, 빠른 수령을 위해 미리 준비해주세요. 😘'
+          })
+        } else {
+          member.ws.state.notifyStartDelivery(order.partyRoom)
+        }
       })
+      push.sendPushMessages().then()
     })
   }
 )
