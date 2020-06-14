@@ -16,6 +16,7 @@ import orderManagingServer, {
 } from '@/modules/internal/order-managing/orderManagingServer'
 import getDistance from '@/modules/internal/getDistance'
 import Push from '@/modules/notification/Push'
+import { Op } from 'sequelize'
 
 export interface PartyWS extends WebSocket {
   isAlive: boolean
@@ -368,7 +369,7 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
 
         // send push notifications to near hungry users
         const users = await User.findAll({
-          where: { pushToken: { ne: null }, isHungry: true },
+          where: { pushToken: { [Op.ne]: null }, isHungry: true },
           include: [
             {
               association: User.associations.place,
