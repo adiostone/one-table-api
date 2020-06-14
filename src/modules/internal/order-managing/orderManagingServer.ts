@@ -298,9 +298,10 @@ orderManagingServer.on(
       ws.emit('sendMessage', replyOperation, replyBody)
 
       // notify to customers
+      const push = new Push()
       order.partyRoom.members.forEach(member => {
         if (member.ws.user.get('pushToken')) {
-          Push.I.addToMessageQueue({
+          push.addToMessageQueue({
             to: member.ws.user.get('pushToken'),
             title: '주문이 접수되었습니다.',
             body: `${body.estimatedTime}분 후에 도착 예정입니다.`
@@ -312,8 +313,7 @@ orderManagingServer.on(
           )
         }
       })
-
-      Push.I.sendPushMessages().then()
+      push.sendPushMessages().then()
     })
 
     ws.on('refuseOrder', (body: RefuseOrderBody) => {
@@ -343,10 +343,20 @@ orderManagingServer.on(
         delete partyRoomList[order.partyRoom.id]
 
         // notify to customers
+        const push = new Push()
         order.partyRoom.members.forEach(member => {
           transitionTo(member.ws, new NotInRoom())
-          member.ws.state.notifyOrderIsRefused(order.partyRoom)
+
+          if (member.ws.user.get('pushToken')) {
+            push.addToMessageQueue({
+              to: member.ws.user.get('pushToken'),
+              title: '주문이 취소되었습니다.'
+            })
+          } else {
+            member.ws.state.notifyOrderIsRefused(order.partyRoom)
+          }
         })
+        push.sendPushMessages().then()
       })
     })
 

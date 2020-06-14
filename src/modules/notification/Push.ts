@@ -4,25 +4,9 @@ import Logger from '@/modules/log/Logger'
 const expo = new Expo()
 
 export default class Push {
-  /**
-   * Singleton instance
-   */
-  private static _instance: Push
-
   private readonly validMessages: ExpoPushMessage[]
 
-  /**
-   * Get singleton instance.
-   */
-  public static get I(): Push {
-    if (this._instance === undefined) {
-      this._instance = new this()
-    }
-
-    return this._instance
-  }
-
-  private constructor() {
+  public constructor() {
     this.validMessages = []
   }
 
