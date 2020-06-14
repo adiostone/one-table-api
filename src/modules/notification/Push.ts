@@ -9,7 +9,7 @@ export default class Push {
    */
   private static _instance: Push
 
-  private validMessages: ExpoPushMessage[]
+  private readonly validMessages: ExpoPushMessage[]
 
   /**
    * Get singleton instance.

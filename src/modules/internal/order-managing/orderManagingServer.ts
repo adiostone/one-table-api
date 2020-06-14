@@ -11,6 +11,7 @@ import {
   transitionTo
 } from '@/modules/internal/party/partyServer'
 import NotInRoom from '@/modules/internal/party/states/NotInRoom'
+import Push from '@/modules/notification/Push'
 
 export interface OrderManagingWS extends WebSocket {
   isAlive: boolean
@@ -298,11 +299,21 @@ orderManagingServer.on(
 
       // notify to customers
       order.partyRoom.members.forEach(member => {
-        member.ws.state.notifyOrderIsAccepted(
-          order.partyRoom,
-          body.estimatedTime
-        )
+        if (member.ws.user.get('pushToken')) {
+          Push.I.addToMessageQueue({
+            to: member.ws.user.get('pushToken'),
+            title: '주문이 접수되었습니다.',
+            body: `${body.estimatedTime}분 후에 도착 예정입니다.`
+          })
+        } else {
+          member.ws.state.notifyOrderIsAccepted(
+            order.partyRoom,
+            body.estimatedTime
+          )
+        }
       })
+
+      Push.I.sendPushMessages().then()
     })
 
     ws.on('refuseOrder', (body: RefuseOrderBody) => {
