@@ -6,6 +6,11 @@ import PartyRoom from '@/modules/internal/party/PartyRoom'
 import OrderInProgress, {
   OrderStatus
 } from '@/modules/internal/order-managing/OrderInProgress'
+import {
+  partyRoomList,
+  transitionTo
+} from '@/modules/internal/party/partyServer'
+import NotInRoom from '@/modules/internal/party/states/NotInRoom'
 
 export interface OrderManagingWS extends WebSocket {
   isAlive: boolean
@@ -322,13 +327,16 @@ orderManagingServer.on(
       ws.orderQueue.splice(orderIndex, 1)
       ws.emit('sendMessage', replyOperation, replyBody)
 
-      // notify to customers
-      order.partyRoom.members.forEach(member => {
-        member.ws.state.notifyOrderIsRefused(order.partyRoom)
-      })
-
       // cancel all member's payments
-      order.partyRoom.cancelAllPayments().then()
+      order.partyRoom.refuseOrder().then(() => {
+        delete partyRoomList[order.partyRoom.id]
+
+        // notify to customers
+        order.partyRoom.members.forEach(member => {
+          transitionTo(member.ws, new NotInRoom())
+          member.ws.state.notifyOrderIsRefused(order.partyRoom)
+        })
+      })
     })
 
     ws.on('startDelivery', (body: StartDeliveryBody) => {

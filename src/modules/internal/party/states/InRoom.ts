@@ -344,11 +344,7 @@ export default class InRoom extends State {
   }
 
   public notifyOrderIsRefused(partyRoom: PartyRoom): void {
-    if (this._ws.roomID === partyRoom.id) {
-      const operation = 'notifyOrderIsRefused'
-
-      this._ws.emit('sendPartyMessage', operation)
-    }
+    // do nothing
   }
 
   public notifyStartDelivery(partyRoom: PartyRoom): void {
