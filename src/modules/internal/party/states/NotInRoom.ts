@@ -170,4 +170,11 @@ export default class NotInRoom extends State {
   ): void {
     // do nothing
   }
+
+  public notifyMemberReceiveDelivery(
+    partyRoom: PartyRoom,
+    receiveMember: Member
+  ): void {
+    // do nothing
+  }
 }

@@ -73,4 +73,9 @@ export default abstract class State {
     partyRoom: PartyRoom,
     completeMember: Member
   ): void
+
+  public abstract notifyMemberReceiveDelivery(
+    partyRoom: PartyRoom,
+    receiveMember: Member
+  ): void
 }

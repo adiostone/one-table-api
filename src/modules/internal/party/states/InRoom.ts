@@ -97,6 +97,10 @@ interface NotifyCompletePaymentBody {
   id: string
 }
 
+interface NotifyMemberReceiveDeliveryBody {
+  id: string
+}
+
 export default class InRoom extends State {
   public notifyNewParty(newPartyRoom: PartyRoom): void {
     // do nothing
@@ -363,6 +367,20 @@ export default class InRoom extends State {
       const operation = 'notifyCompletePayment'
       const body: NotifyCompletePaymentBody = {
         id: completeMember.ws.user.get('id')
+      }
+
+      this._ws.emit('sendPartyMessage', operation, body)
+    }
+  }
+
+  public notifyMemberReceiveDelivery(
+    partyRoom: PartyRoom,
+    receiveMember: Member
+  ): void {
+    if (this._ws.roomID === partyRoom.id) {
+      const operation = 'notifyMemberReceiveDelivery'
+      const body: NotifyMemberReceiveDeliveryBody = {
+        id: receiveMember.ws.user.get('id')
       }
 
       this._ws.emit('sendPartyMessage', operation, body)
