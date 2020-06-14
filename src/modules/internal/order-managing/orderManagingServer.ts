@@ -304,7 +304,8 @@ orderManagingServer.on(
           push.addToMessageQueue({
             to: member.ws.user.get('pushToken'),
             title: '🎉🎉🎉 주문이 접수되었어요!',
-            body: `${body.estimatedTime}분 후에 도착 예정이에요.`
+            body: `${body.estimatedTime}분 후에 도착 예정이에요.`,
+            data: { operation: 'acceptOrder' }
           })
         } else {
           member.ws.state.notifyOrderIsAccepted(
@@ -350,7 +351,8 @@ orderManagingServer.on(
           if (member.ws.user.get('pushToken')) {
             push.addToMessageQueue({
               to: member.ws.user.get('pushToken'),
-              title: '😭 주문이 취소되었어요 ㅠ'
+              title: '😭 주문이 취소되었어요 ㅠ',
+              data: { operation: 'refuseOrder' }
             })
           } else {
             member.ws.state.notifyOrderIsRefused(order.partyRoom)
@@ -388,7 +390,8 @@ orderManagingServer.on(
           push.addToMessageQueue({
             to: member.ws.user.get('pushToken'),
             title: '🛵 드디어 배달 출발~~!',
-            body: '대면 수령일 시, 빠른 수령을 위해 미리 준비해주세요. 😘'
+            body: '대면 수령일 시, 빠른 수령을 위해 미리 준비해주세요. 😘',
+            data: { operation: 'startDelivery' }
           })
         } else {
           member.ws.state.notifyStartDelivery(order.partyRoom)

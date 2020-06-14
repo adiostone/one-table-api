@@ -414,7 +414,8 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
           push.addToMessageQueue({
             to: user.pushToken,
             title: '👋🏻 주변에 새로운 파티가 생겼어요.',
-            body: `[${partyRoom.restaurant.get('name')}] ${partyRoom.title}`
+            body: `[${partyRoom.restaurant.get('name')}] ${partyRoom.title}`,
+            data: { operation: 'createParty' }
           })
         }
 
