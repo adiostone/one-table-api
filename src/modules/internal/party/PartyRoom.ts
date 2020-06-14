@@ -53,8 +53,6 @@ export default class PartyRoom {
   public restaurant: Restaurant
   public title: string
   public address: string
-  public latitude: number
-  public longitude: number
   public capacity: number
   public members: Member[]
   public chats: Chat[]
@@ -66,8 +64,6 @@ export default class PartyRoom {
     restaurantID: number,
     title: string,
     address: string,
-    latitude: number,
-    longitude: number,
     capacity: number,
     hostWS: PartyWS
   ): Promise<void> {
@@ -76,8 +72,6 @@ export default class PartyRoom {
       this.restaurant,
       this.title,
       this.address,
-      this.latitude,
-      this.longitude,
       this.capacity,
       this.members,
       this.chats,
@@ -89,8 +83,6 @@ export default class PartyRoom {
       await Restaurant.findByPk(restaurantID),
       title,
       address,
-      latitude,
-      longitude,
       capacity,
       [
         {
