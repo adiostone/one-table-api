@@ -4,7 +4,27 @@ import Logger from '@/modules/log/Logger'
 const expo = new Expo()
 
 export default class Push {
+  /**
+   * Singleton instance
+   */
+  private static _instance: Push
+
   private validMessages: ExpoPushMessage[]
+
+  /**
+   * Get singleton instance.
+   */
+  public static get I(): Push {
+    if (this._instance === undefined) {
+      this._instance = new this()
+    }
+
+    return this._instance
+  }
+
+  private constructor() {
+    this.validMessages = []
+  }
 
   public addToMessageQueue(message: ExpoPushMessage): void {
     if (Array.isArray(message.to)) {
