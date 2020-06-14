@@ -157,7 +157,11 @@ export default class NotInRoom extends State {
   }
 
   public notifyOrderIsRefused(partyRoom: PartyRoom): void {
-    // do nothing
+    if (partyRoom.members.some(member => member.ws === this._ws)) {
+      const operation = 'notifyOrderIsRefused'
+
+      this._ws.emit('sendPartyMessage', operation)
+    }
   }
 
   public notifyStartDelivery(partyRoom: PartyRoom): void {
@@ -167,6 +171,13 @@ export default class NotInRoom extends State {
   public notifyCompletePayment(
     partyRoom: PartyRoom,
     completeMember: Member
+  ): void {
+    // do nothing
+  }
+
+  public notifyMemberReceiveDelivery(
+    partyRoom: PartyRoom,
+    receiveMember: Member
   ): void {
     // do nothing
   }
