@@ -43,6 +43,8 @@ interface CreatePartyBody {
   restaurantID: number
   title: string
   address: string
+  latitude: number
+  longitude: number
   capacity: number
 }
 
@@ -348,6 +350,8 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
         body.restaurantID,
         body.title,
         body.address,
+        body.latitude,
+        body.longitude,
         body.capacity,
         ws
       )
@@ -361,20 +365,6 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
         partyServer.clients.forEach((partyWS: PartyWS) => {
           partyWS.state.notifyNewParty(partyRoom)
         })
-
-        let host = await ws.user.reload({
-          include: [
-            {
-              association: User.associations.place,
-              attributes: ['latitude', 'longitude']
-            }
-          ],
-          plain: true
-        })
-        host = host.toJSON() as User
-
-        const partyRoomLatitude = host.place.latitude
-        const partyRoomLongitude = host.place.longitude
 
         // send push notifications to near hungry users
         const users = await User.findAll({
@@ -392,8 +382,8 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
           user = user.toJSON() as User
 
           const distanceInKM = getDistance(
-            partyRoomLatitude,
-            partyRoomLongitude,
+            partyRoom.latitude,
+            partyRoom.longitude,
             user.place.latitude,
             user.place.longitude
           )
