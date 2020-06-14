@@ -518,4 +518,20 @@ export default class PartyRoom {
 
     await Promise.all(cancelPromiseList)
   }
+
+  public receiveDelivery(ws: PartyWS): Member {
+    const memberIndex = this.members.findIndex(member => member.ws === ws)
+    if (memberIndex === -1) {
+      throw Error('user is not member of this party room')
+    }
+    if (!this.isPaymentPhase) {
+      throw Error('this party is not payment phase')
+    }
+
+    const receiveMember = this.members[memberIndex]
+    this.members.splice(memberIndex, 1)
+    ws.roomID = null
+
+    return receiveMember
+  }
 }
