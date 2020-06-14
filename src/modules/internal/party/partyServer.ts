@@ -403,13 +403,13 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
             continue
           }
 
-          if (
-            Array.from(partyServer.clients).some((ws: PartyWS) => {
-              return ws.user.get('id') === user.id
-            })
-          ) {
-            continue
-          }
+          // if (
+          //   Array.from(partyServer.clients).some((ws: PartyWS) => {
+          //     return ws.user.get('id') === user.id
+          //   })
+          // ) {
+          //   continue
+          // }
 
           push.addToMessageQueue({
             to: user.pushToken,
