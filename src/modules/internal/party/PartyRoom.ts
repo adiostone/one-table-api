@@ -504,7 +504,7 @@ export default class PartyRoom {
     }
   }
 
-  public async cancelAllPayments(): Promise<void> {
+  public async refuseOrder(): Promise<void> {
     if (!this.isPaymentPhase) {
       throw Error('this party is not payment phase')
     }
@@ -512,11 +512,16 @@ export default class PartyRoom {
       throw Error('Every member must is paid')
     }
 
+    // cancel all payments
     const cancelPromiseList = this.members.map(member => {
       return iamport.cancelByMerchantUid(member.merchantUID)
     })
-
     await Promise.all(cancelPromiseList)
+
+    // out all members
+    for (const member of this.members) {
+      member.ws.roomID = null
+    }
   }
 
   public receiveDelivery(ws: PartyWS): Member {
