@@ -725,6 +725,10 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
       return
     }
 
+    partyServer.clients.forEach((partyWS: PartyWS) => {
+      partyWS.state.notifyDeleteParty(partyRoom)
+    })
+
     partyRoom.members.forEach(member => {
       member.ws.state.notifyGoToPayment(partyRoom)
     })
