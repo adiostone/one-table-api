@@ -20,6 +20,10 @@ const schema = {
     type: DataTypes.STRING(256),
     allowNull: true
   },
+  pushToken: {
+    type: DataTypes.STRING(128),
+    allowNull: true
+  },
   signedInAt: {
     type: DataTypes.DATE,
     allowNull: false,
@@ -37,6 +41,7 @@ export default class User extends Model {
   public email: string
   public nickname: string
   public image: string | null
+  public pushToken: string | null
   public signedInAt: Date
   public signedUpAt: Date
 
