@@ -14,6 +14,8 @@ import InRoom from '@/modules/internal/party/states/InRoom'
 import orderManagingServer, {
   OrderManagingWS
 } from '@/modules/internal/order-managing/orderManagingServer'
+import getDistance from '@/modules/internal/getDistance'
+import Push from '@/modules/notification/Push'
 
 export interface PartyWS extends WebSocket {
   isAlive: boolean
@@ -349,7 +351,7 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
         body.capacity,
         ws
       )
-      .then(() => {
+      .then(async () => {
         partyRoomList[partyRoom.id] = partyRoom
         transitionTo(ws, new InRoom())
 
@@ -359,6 +361,63 @@ partyServer.on('connection', (ws: PartyWS, req: HttpRequest) => {
         partyServer.clients.forEach((partyWS: PartyWS) => {
           partyWS.state.notifyNewParty(partyRoom)
         })
+
+        let host = await ws.user.reload({
+          include: [
+            {
+              association: User.associations.place,
+              attributes: ['latitude', 'longitude']
+            }
+          ],
+          plain: true
+        })
+        host = host.toJSON() as User
+
+        const partyRoomLatitude = host.place.latitude
+        const partyRoomLongitude = host.place.longitude
+
+        // send push notifications to near hungry users
+        const users = await User.findAll({
+          where: { pushToken: { ne: null }, isHungry: true },
+          include: [
+            {
+              association: User.associations.place,
+              attributes: ['latitude', 'longitude']
+            }
+          ]
+        })
+
+        const push = new Push()
+        for (let user of users) {
+          user = user.toJSON() as User
+
+          const distanceInKM = getDistance(
+            partyRoomLatitude,
+            partyRoomLongitude,
+            user.place.latitude,
+            user.place.longitude
+          )
+
+          if (distanceInKM > 0.5) {
+            continue
+          }
+
+          if (
+            Array.from(partyServer.clients).some((ws: PartyWS) => {
+              return ws.user.get('id') === user.id
+            })
+          ) {
+            continue
+          }
+
+          push.addToMessageQueue({
+            to: user.pushToken,
+            title: '👋🏻 주변에 새로운 파티가 생겼어요.',
+            body: `[${partyRoom.restaurant.get('name')}] ${partyRoom.title}`
+          })
+        }
+
+        await push.sendPushMessages()
       })
   })
 
